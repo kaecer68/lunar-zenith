@@ -2,8 +2,8 @@ package service
 
 import (
 	"time"
-	"github.com/kaecer68/lunar-zenith/internal/celestial"
-	"github.com/kaecer68/lunar-zenith/internal/zodiac"
+	"github.com/kaecer68/lunar-zenith/pkg/celestial"
+	"github.com/kaecer68/lunar-zenith/pkg/zodiac"
 )
 
 // CalendarResponse 曆法全家桶：聚合所有維度的數據

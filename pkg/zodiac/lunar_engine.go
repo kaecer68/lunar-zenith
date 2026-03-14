@@ -2,7 +2,7 @@ package zodiac
 
 import (
 	"math"
-	"github.com/kaecer68/lunar-zenith/internal/celestial"
+	"github.com/kaecer68/lunar-zenith/pkg/celestial"
 )
 
 // LunarEngine 完成高精度定閏演算

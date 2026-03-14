@@ -18,9 +18,9 @@
   - **REST (OpenAPI 3.0)**: 提供標準 Web API，並自動生成 Swagger 定制化文檔。
 
 ## 3. 核心架構 (Core Architecture)
-- **Celestial (天體部)**: 導入經過驗證的天文計算法，處理天體物理位置與朔望月。
-- **Zodiac (文化部)**: 處理台灣民俗曆法邏輯、干支轉化、神煞模型及宗教曆法。
-- **Service (數據部)**: 載入台灣政府公告之 JSON 數據，支持年度補假規則的動態掛載與更新。
+- **Celestial (天體部 - 公開)**: 位於 `pkg/celestial`，處理天文計算法、天體物理位置與朔望月。
+- **Zodiac (文化部 - 公開)**: 位於 `pkg/zodiac`，處理台灣民俗曆法、干支轉化、神煞模型及宗教曆法。
+- **Service (服務部 - 內部)**: 位於 `internal/service`，聚合曆法運算並載入行政假期數據。
 
 ## 4. 性能與安全指標 (Security & Performance)
 - **並發安全**: 全無狀態 (Stateless) 設計，內部使用讀寫鎖保護計算緩存。

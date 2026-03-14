@@ -2,7 +2,7 @@ package zodiac
 
 import (
 	"math"
-	"github.com/kaecer68/lunar-zenith/internal/celestial"
+	"github.com/kaecer68/lunar-zenith/pkg/celestial"
 )
 
 // GetSolarMonth 根據太陽黃經確定節氣月 (1:寅, 2:卯 ... 11:子, 12:丑)

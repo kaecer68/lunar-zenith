@@ -3,7 +3,7 @@ package zodiac
 import (
 	"testing"
 	"time"
-	"github.com/kaecer68/lunar-zenith/internal/celestial"
+	"github.com/kaecer68/lunar-zenith/pkg/celestial"
 )
 
 func TestLunarEngine_GetLunarDate(t *testing.T) {
