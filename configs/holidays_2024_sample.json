@@ -1,0 +1,23 @@
+[
+  {
+    "date": "20240101",
+    "name": "開國紀念日",
+    "is_holiday": true,
+    "description": "元旦放假",
+    "category": "holiday"
+  },
+  {
+    "date": "20240208",
+    "name": "春節連假",
+    "is_holiday": true,
+    "description": "小年夜調整放假",
+    "category": "holiday"
+  },
+  {
+    "date": "20240217",
+    "name": "春節補班",
+    "is_holiday": false,
+    "description": "補 2/8 班",
+    "category": "workday"
+  }
+]

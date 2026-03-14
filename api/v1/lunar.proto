@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package api.v1;
+
+option go_package = "github.com/kaecer68/lunar-zenith/api/v1;lunarv1";
+
+service LunarService {
+  // GetCalendar 獲取完整曆法聚合數據
+  rpc GetCalendar(GetCalendarRequest) returns (GetCalendarResponse);
+}
+
+message GetCalendarRequest {
+  string date = 1; // 格式: YYYY-MM-DD
+}
+
+message GetCalendarResponse {
+  string gregorian_date = 1;
+  double julian_day = 2;
+  double delta_t = 3;
+  
+  LunarInfo lunar = 4;
+  string buddhist = 5;
+  string taoist = 6;
+  
+  Pillars pillars = 7;
+  SolarTerm solar_term = 8;
+  
+  string twelve_officer = 9;
+  repeated ShenSha shen_sha = 10;
+  
+  HolidayInfo holiday_info = 11;
+}
+
+message LunarInfo {
+  int32 year = 1;
+  int32 month = 2;
+  int32 day = 3;
+  bool is_leap = 4;
+  string string_value = 5;
+}
+
+message Pillars {
+  string year = 1;
+  string month = 2;
+  string day = 3;
+  string hour = 4;
+}
+
+message SolarTerm {
+  int32 index = 1;
+  string name = 2;
+  double longitude = 3;
+}
+
+message ShenSha {
+  string name = 1;
+  string description = 2;
+}
+
+message HolidayInfo {
+  bool is_holiday = 1;
+  string name = 2;
+}

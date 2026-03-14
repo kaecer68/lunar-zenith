@@ -1,0 +1,29 @@
+# .gitignore for Lunar-Zenith
+
+# Binaries
+bin/
+dist/
+lunar-zenith
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment Variables & Secrets (CRITICAL)
+.env
+*.pem
+*.key
+json-key.json
+secrets/
+
+# Go dependencies
+vendor/
+
+# Build logs
+*.log
