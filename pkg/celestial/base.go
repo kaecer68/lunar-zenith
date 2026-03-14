@@ -43,6 +43,41 @@ func TimeToJD(t time.Time) float64 {
 	return jd
 }
 
+// JDToDate 將儒略日 (Julian Day) 轉換為公曆日期
+// 算法參考 Jean Meeus "Astronomical Algorithms" 第七章
+func JDToDate(jd float64) (year, month, day int) {
+	jd += 0.5
+	z := math.Floor(jd)
+	f := jd - z
+	var a float64
+	if z < 2299161 {
+		a = z
+	} else {
+		alpha := math.Floor((z - 1867216.25) / 36524.25)
+		a = z + 1 + alpha - math.Floor(alpha/4)
+	}
+	b := a + 1524
+	c := math.Floor((b - 122.1) / 365.25)
+	d := math.Floor(365.25 * c)
+	e := math.Floor((b - d) / 30.6001)
+
+	dayFrac := b - d - math.Floor(30.6001*e) + f
+	day = int(dayFrac)
+
+	if e < 14 {
+		month = int(e - 1)
+	} else {
+		month = int(e - 13)
+	}
+
+	if month > 2 {
+		year = int(c - 4716)
+	} else {
+		year = int(c - 4715)
+	}
+	return
+}
+
 // EstimateDeltaT 估算 TT 與 UT 之間的差值
 // 這裡暫時使用一個簡化的二次多項式擬合算法，未來將優化為表驅動
 func EstimateDeltaT(t time.Time) float64 {

@@ -26,4 +26,26 @@ func TestLunarEngine_GetLunarDate(t *testing.T) {
 	if ld2.Month != 4 || ld2.Day != 8 {
 		t.Errorf("2024-05-15 應為四月初八, got %d月%d日", ld2.Month, ld2.Day)
 	}
+
+	// 額外驗證：1972, 1990 及冬至
+	bugTests := []struct {
+		date       time.Time
+		wantYear   int
+		wantPillar string
+	}{
+		{time.Date(1972, 6, 8, 12, 0, 0, 0, time.UTC), 1972, "壬子"},
+		{time.Date(1990, 6, 15, 12, 0, 0, 0, time.UTC), 1990, "庚午"},
+		{time.Date(2023, 12, 22, 12, 0, 0, 0, time.UTC), 2023, "癸卯"},
+	}
+
+	for _, tt := range bugTests {
+		pt := celestial.NewPrecisionTime(tt.date)
+		ld := engine.GetLunarDate(pt.JD)
+		if ld.Year != tt.wantYear {
+			t.Errorf("Date %s: got year %d, want %d", tt.date.Format("2006-01-02"), ld.Year, tt.wantYear)
+		}
+		if ld.YearPillar.String() != tt.wantPillar {
+			t.Errorf("Date %s: got pillar %s, want %s", tt.date.Format("2006-01-02"), ld.YearPillar.String(), tt.wantPillar)
+		}
+	}
 }

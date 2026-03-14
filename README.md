@@ -1,6 +1,7 @@
 # 🌙 Lunar-Zenith (算曆之巔)
 
 [![Go Version](https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat&logo=go)](https://golang.org)
+[![Version](https://img.shields.io/badge/Version-v0.1.1-blue)](https://github.com/kaecer68/lunar-zenith/releases/tag/v0.1.1)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Precision](https://img.shields.io/badge/Precision-Astronomical-blueviolet)](#)
 
