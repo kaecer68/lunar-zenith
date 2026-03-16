@@ -69,6 +69,8 @@ curl "http://localhost:8080/v1/calendar?date=2024-02-10"
 
 **Kaecer** 
 - GitHub: [@kaecer68](https://github.com/kaecer68)
+- Twitter: [@kaecer68](https://twitter.com/kaecer)
 - 德凱 GoLuck 實用易理作品，旨在將傳統曆法計算現代化、精密化。
+- https://goluck.im/
 
 > *「算曆之巔，意在精確；天人之際，存乎一心。」*
