@@ -1,9 +1,9 @@
 package zodiac
 
 import (
+	"github.com/kaecer68/lunar-zenith/pkg/celestial"
 	"testing"
 	"time"
-	"github.com/kaecer68/lunar-zenith/pkg/celestial"
 )
 
 func TestGetAstrologicalPillar(t *testing.T) {
@@ -12,7 +12,7 @@ func TestGetAstrologicalPillar(t *testing.T) {
 	tBefore := time.Date(2024, 2, 4, 4, 0, 0, 0, time.UTC)
 	ptBefore := celestial.NewPrecisionTime(tBefore)
 	pillarBefore := GetAstrologicalPillar(ptBefore)
-	
+
 	// 立春前應為 癸卯年 (2023 屬兔)
 	if pillarBefore.Year.String() != "癸卯" {
 		t.Errorf("立春前應為 癸卯, got %s", pillarBefore.Year.String())
@@ -22,12 +22,12 @@ func TestGetAstrologicalPillar(t *testing.T) {
 	tAfter := time.Date(2024, 2, 4, 12, 0, 0, 0, time.UTC)
 	ptAfter := celestial.NewPrecisionTime(tAfter)
 	pillarAfter := GetAstrologicalPillar(ptAfter)
-	
+
 	// 立春後應為 甲辰年 (2024 屬龍)
 	if pillarAfter.Year.String() != "甲辰" {
 		t.Errorf("立春後應為 甲辰, got %s", pillarAfter.Year.String())
 	}
-	
+
 	// 3. 驗證月份切換
 	// 2024-03-05 驚蟄前 (寅月)
 	tYin := time.Date(2024, 3, 5, 2, 0, 0, 0, time.UTC)

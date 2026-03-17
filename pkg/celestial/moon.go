@@ -26,7 +26,7 @@ func MoonLongitude(jde float64) float64 {
 	}
 
 	// ELP2000 週期項 (簡化版本，精度足以判定初一)
-	lambda := lPrime + 
+	lambda := lPrime +
 		6.288774*math.Sin(mPrime*Deg2Rad) +
 		1.274027*math.Sin((2*d-mPrime)*Deg2Rad) +
 		0.658314*math.Sin(2*d*Deg2Rad) +
@@ -51,7 +51,7 @@ func MoonPhase(jde float64) float64 {
 func FindNewMoon(jde float64, direction float64) float64 {
 	low := jde
 	high := jde + direction*30.0 // 朔望月約 29.53 天
-	
+
 	if direction < 0 {
 		low, high = high, low
 	}

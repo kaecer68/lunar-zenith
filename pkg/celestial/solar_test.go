@@ -11,7 +11,7 @@ func TestSolarLongitude(t *testing.T) {
 	t1 := time.Date(2024, 3, 20, 3, 6, 0, 0, time.UTC)
 	pt := NewPrecisionTime(t1)
 	lon := SolarLongitude(pt.JDE)
-	
+
 	// 容許誤差在 0.05 度以內（精簡版 VSOP87）
 	if math.Abs(lon-0.0) > 0.05 && math.Abs(lon-360.0) > 0.05 {
 		t.Errorf("2024 春分太陽黃經 = %f; want 接近 0.0", lon)
@@ -23,7 +23,7 @@ func TestGetSolarTerm(t *testing.T) {
 	t1 := time.Date(2024, 2, 4, 8, 27, 0, 0, time.UTC)
 	pt := NewPrecisionTime(t1)
 	info := GetSolarTerm(pt.JDE)
-	
+
 	// 依照我們 SolarTerms 數組定義：春分=0, ... 立春=21, 雨水=22, 驚蟄=23
 	// 立春是 315 度，315/15 = 21
 	if info.Index != 21 {

@@ -11,13 +11,13 @@ func TestAggregator_GetCalendar(t *testing.T) {
 	hSvc := NewHolidayService()
 	// 模擬元旦假期數據
 	hSvc.holidays["20240101"] = TaiwanHoliday{
-		Date: "20240101",
-		Name: "開國紀念日",
+		Date:      "20240101",
+		Name:      "開國紀念日",
 		IsHoliday: true,
 	}
 
 	agg := NewAggregator(hSvc)
-	
+
 	// 2024-01-01 12:00
 	testTime := time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC)
 	res := agg.GetCalendar(testTime)

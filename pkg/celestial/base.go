@@ -7,10 +7,10 @@ import (
 
 // PrecisionTime 封裝了天文計算所需的高精度時間結構
 type PrecisionTime struct {
-	UT  time.Time // 民用協調世界時 (Universal Time)
-	JD  float64   // 儒略日 (Julian Day in UT)
-	JDE float64   // 儒略曆元 (Julian Ephemeris Day in TT)
-	DeltaT float64 // TT - UT 的差值（秒）
+	UT     time.Time // 民用協調世界時 (Universal Time)
+	JD     float64   // 儒略日 (Julian Day in UT)
+	JDE    float64   // 儒略曆元 (Julian Ephemeris Day in TT)
+	DeltaT float64   // TT - UT 的差值（秒）
 }
 
 // NewPrecisionTime 根據給定的 Go Time 創建高精度時間對象

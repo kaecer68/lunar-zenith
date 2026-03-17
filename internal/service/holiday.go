@@ -10,18 +10,18 @@ import (
 type HolidayType string
 
 const (
-	TypePublicHoliday HolidayType = "holiday"     // 國定假日
-	TypeWorkday       HolidayType = "workday"     // 補班日
-	TypeWeekend       HolidayType = "weekend"     // 週末
+	TypePublicHoliday HolidayType = "holiday" // 國定假日
+	TypeWorkday       HolidayType = "workday" // 補班日
+	TypeWeekend       HolidayType = "weekend" // 週末
 )
 
 // TaiwanHoliday 封裝台灣政府公告的單條假期資訊
 type TaiwanHoliday struct {
-	Date        string      `json:"date"`         // 格式: YYYYMMDD
-	Name        string      `json:"name"`         // 假期名稱 (如: 春節)
-	IsHoliday   bool        `json:"is_holiday"`   // 是否放假
-	Description string      `json:"description"`  // 備註
-	Category    HolidayType `json:"category"`     // 類別
+	Date        string      `json:"date"`        // 格式: YYYYMMDD
+	Name        string      `json:"name"`        // 假期名稱 (如: 春節)
+	IsHoliday   bool        `json:"is_holiday"`  // 是否放假
+	Description string      `json:"description"` // 備註
+	Category    HolidayType `json:"category"`    // 類別
 }
 
 // HolidayService 處理假期數據的檢索服務

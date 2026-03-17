@@ -64,7 +64,7 @@ func GetSolarTerm(jde float64) SolarTermInfo {
 		normLon += 360.0
 	}
 	index := int(math.Floor(normLon / 15.0))
-	
+
 	return SolarTermInfo{
 		Index:     index,
 		Name:      GetSolarTermName(index),
@@ -82,7 +82,7 @@ func EstimateTermTime(targetLon float64, startJDE, endJDE float64) float64 {
 	for i := 0; i < 50; i++ { // 限制迭代次數
 		mid := (low + high) / 2
 		lon := SolarLongitude(mid)
-		
+
 		// 處理 360/0 度跨越問題
 		diff := lon - targetLon
 		if diff > 180 {

@@ -1,8 +1,8 @@
 package zodiac
 
 import (
-	"math"
 	"github.com/kaecer68/lunar-zenith/pkg/celestial"
+	"math"
 )
 
 // GetSolarMonth 根據太陽黃經確定節氣月 (1:寅, 2:卯 ... 11:子, 12:丑)
@@ -29,7 +29,7 @@ type AstrologicalPillar struct {
 // GetAstrologicalPillar 獲取指定 JDE 時刻的命理四柱 (基於節氣月)
 func GetAstrologicalPillar(pt *celestial.PrecisionTime) AstrologicalPillar {
 	lon := celestial.SolarLongitude(pt.JDE)
-	
+
 	// 1. 年柱 (注意：立春前算上一年)
 	year := pt.UT.Year()
 	// 如果在立春前，年柱算上一年
@@ -38,7 +38,7 @@ func GetAstrologicalPillar(pt *celestial.PrecisionTime) AstrologicalPillar {
 		// 這裡有個邏輯跨越：1月1日到立春點之間，lon 是在 [285, 315) 左右。
 		// 所以如果 lon > 280 (冬至後) 且 < 315，表示還沒到立春。
 	}
-	
+
 	// 更精準判斷：
 	// 若 lon < 315 && 月份是 1月或 2月，則視為上一年
 	calcYear := year
@@ -46,21 +46,21 @@ func GetAstrologicalPillar(pt *celestial.PrecisionTime) AstrologicalPillar {
 		calcYear--
 	}
 	yearPillar := NewYearSexagenary(calcYear)
-	
+
 	// 2. 月柱 (基于節氣月)
 	monthIdx := GetSolarMonth(lon)
 	monthPillar := GetMonthSexagenary(yearPillar.StemIndex, monthIdx)
-	
+
 	// 3. 日柱
 	dayPillar := GetDaySexagenary(pt.JD)
-	
+
 	// 4. 時柱 (考慮早子、晚子)
 	hour := pt.UT.Hour()
 	// 如果是 23:00 後，算在隔天的早子時 (命理習慣)
 	// 但 GetDaySexagenary 已經用了 JD，JD 的 23:00 (+0.5) 會自動推移
 	hourBranch := GetHourBranch(hour)
 	hourPillar := GetHourSexagenary(dayPillar.StemIndex, hourBranch)
-	
+
 	return AstrologicalPillar{
 		Year:  yearPillar,
 		Month: monthPillar,

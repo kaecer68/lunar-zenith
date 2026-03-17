@@ -9,13 +9,13 @@ func TestHolidayService(t *testing.T) {
 	// 注意：路徑是相對於 go test 執行位置或使用絕對路徑
 	// 為了測試穩定性，我們手動注入一條數據
 	s.holidays["20240101"] = TaiwanHoliday{
-		Date: "20240101",
-		Name: "元旦",
+		Date:      "20240101",
+		Name:      "元旦",
 		IsHoliday: true,
 	}
 	s.holidays["20240217"] = TaiwanHoliday{
-		Date: "20240217",
-		Name: "補班",
+		Date:      "20240217",
+		Name:      "補班",
 		IsHoliday: false,
 	}
 
