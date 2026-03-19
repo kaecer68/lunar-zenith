@@ -15,9 +15,9 @@ import (
 
 func main() {
 	// 1. 初始化服務
-	// 台灣假期
+	// 台灣假期 - 使用完整假期數據
 	holidaySvc := service.NewHolidayService()
-	if err := holidaySvc.LoadFromJSON("configs/holidays_2024_sample.json"); err != nil {
+	if err := holidaySvc.LoadFromJSON("configs/holidays_tw_2024_2026.json"); err != nil {
 		log.Printf("Warning: Failed to load Taiwan holiday data: %v", err)
 	}
 

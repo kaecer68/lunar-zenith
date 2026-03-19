@@ -770,8 +770,12 @@ function renderData(d, data) {
   const clashSha = data.clash_sha || {};
 
   // Lunar date display
-  const lunarMonthStr = (lunar.IsLeap ? '閏' : '') + LUNAR_MONTHS[lunar.Month] + '月';
-  const lunarDayStr = LUNAR_NUMS[lunar.Day] || lunar.Day;
+  const lunarMonth = lunar.Month || lunar.month || 1;
+  const lunarDay = lunar.Day || lunar.day || 1;
+  const lunarIsLeap = lunar.IsLeap || lunar.is_leap || false;
+  const lunarMonthStr = (lunarIsLeap ? '閏' : '') + (LUNAR_MONTHS[lunarMonth] || '?') + '月';
+  const lunarDayStr = LUNAR_NUMS[lunarDay] || lunarDay || '?';
+  const lunarYear = lunar.Year || lunar.year || '';
 
   // Four pillars ganzhi strings
   function gzStr(p) {
@@ -826,7 +830,7 @@ function renderData(d, data) {
       ${hol.is_holiday && hol.name ? `<span class="holiday-badge">${hol.name}</span>` : ''}
     </div>
     <div class="hero-lunar" style="margin-top:12px">
-      <div><span class="label">農曆</span> ${lunar.Year || ''}年 ${lunarMonthStr} ${lunarDayStr}</div>
+      <div><span class="label">農曆</span> ${lunarYear}年 ${lunarMonthStr} ${lunarDayStr}</div>
       <div style="margin-top:4px"><span class="label">年份</span> ${yearGZ}年 · ${yearAnimal}年</div>
       <div style="margin-top:4px;display:flex;gap:16px;flex-wrap:wrap">
         <span>${data.buddhist || ''}</span>
@@ -850,7 +854,7 @@ function renderData(d, data) {
   <div class="hero-right">
     <div class="lunar-day-num">${lunarDayStr}</div>
     <div class="lunar-month-label">${lunarMonthStr}</div>
-    ${lunar.Year ? `<div style="font-size:.75rem;color:var(--text-dim);margin-top:4px">${lunar.Year} 年</div>` : ''}
+    ${lunarYear ? `<div style="font-size:.75rem;color:var(--text-dim);margin-top:4px">${lunarYear} 年</div>` : ''}
   </div>
 </div>
 
@@ -861,7 +865,30 @@ function renderData(d, data) {
   ${miniCalHTML(calYear, calMonth, currentDate, {})}
 </div>
 
-<!-- 假期資訊 -->
+<!-- 假日信息 -->
+${(hol.is_holiday || chinaHol.is_holiday) ? `
+<div class="card" style="border:1px solid var(--accent);background:linear-gradient(135deg,var(--surface),#1a1a2d)">
+  <div class="card-title" style="color:var(--accent)">🎌 假日信息</div>
+  ${hol.is_holiday ? `
+    <div style="margin-bottom:12px;padding:12px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--accent)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:.7rem;color:var(--text-dim);padding:2px 6px;background:var(--bg);border-radius:4px;border:1px solid var(--border)">台灣</span>
+        <span style="font-size:1.1rem;font-weight:800;color:var(--accent)">${hol.name}</span>
+      </div>
+      <div style="font-size:.78rem;color:var(--text-dim)">中華民國法定假日</div>
+    </div>
+  ` : ''}
+  ${chinaHol.is_holiday ? `
+    <div style="padding:12px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--green)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:.7rem;color:var(--text-dim);padding:2px 6px;background:var(--bg);border-radius:4px;border:1px solid var(--border)">大陸</span>
+        <span style="font-size:1.1rem;font-weight:800;color:var(--green)">${chinaHol.name}</span>
+      </div>
+      <div style="font-size:.78rem;color:var(--text-dim)">中華人民共和國法定假日</div>
+    </div>
+  ` : ''}
+</div>
+` : ''}
 
 <!-- 四柱八字 -->
 <div class="card">
@@ -945,11 +972,11 @@ function renderData(d, data) {
     </div>
     <div class="info-row">
       <span class="info-label">閏月</span>
-      <span class="info-value">${lunar.IsLeap ? '是（閏月）' : '否'}</span>
+      <span class="info-value">${lunarIsLeap ? '是（閏月）' : '否'}</span>
     </div>
     <div class="info-row">
       <span class="info-label">農曆年</span>
-      <span class="info-value">${lunar.Year || '─'} 年</span>
+      <span class="info-value">${lunarYear || '─'} 年</span>
     </div>
   </div>
 </div>
@@ -1168,42 +1195,9 @@ function renderData(d, data) {
   </div>
 </div>
 
-<!-- Mini Calendar -->
-<div class="card">
-  <div class="card-title">台灣行政假期</div>
-  <div class="info-row">
-    <span class="info-label">是否假日</span>
-    <span class="info-value" style="color:${hol.is_holiday?'var(--green)':'var(--text-dim)'}">
-      ${hol.is_holiday ? '✓ 是' : '✗ 否（工作日）'}
-    </span>
-  </div>
-  <div class="info-row">
-    <span class="info-label">假期名稱</span>
-    <span class="info-value">${hol.name || '─'}</span>
-  </div>
-  <div style="margin-top:10px;padding:10px;background:var(--surface2);border-radius:8px;font-size:.78rem;color:var(--text-dim);line-height:1.7">
-    <div>資料來源：中華民國政府公告</div>
-    <div>目前載入：2024 年樣本資料</div>
-    <div style="margin-top:4px;color:var(--gold-dim)">⚠ 完整假期資料擴充中</div>
-  </div>
-</div>
-<!-- 大陸行政假期 -->
-<div class="card">
-  <div class="card-title">大陸行政假期</div>
-  <div class="info-row">
-    <span class="info-label">是否假日</span>
-    <span class="info-value" style="color:${chinaHol.is_holiday?'var(--green)':'var(--text-dim)'}">
-      ${chinaHol.is_holiday ? '✓ 是' : '✗ 否（工作日）'}
-    </span>
-  </div>
-  <div class="info-row">
-    <span class="info-label">假期名稱</span>
-    <span class="info-value">${chinaHol.name || '─'}</span>
-  </div>
-  <div style="margin-top:10px;padding:10px;background:var(--surface2);border-radius:8px;font-size:.78rem;color:var(--text-dim);line-height:1.7">
-    <div>資料來源：中華人民共和國國務院公告</div>
-    <div>目前載入：2024-2026 年法定假日</div>
-    <div style="margin-top:4px">包含：元旦、春節、清明、勞動節、端午、中秋、國慶</div>
+</div><!-- end grid -->
+
+<div class="footer">
   </div>
 </div>
 
