@@ -78,8 +78,19 @@ type GetCalendarResponse struct {
 	TwelveOfficer string                 `protobuf:"bytes,9,opt,name=twelve_officer,json=twelveOfficer,proto3" json:"twelve_officer,omitempty"`
 	ShenSha       []*ShenSha             `protobuf:"bytes,10,rep,name=shen_sha,json=shenSha,proto3" json:"shen_sha,omitempty"`
 	HolidayInfo   *HolidayInfo           `protobuf:"bytes,11,opt,name=holiday_info,json=holidayInfo,proto3" json:"holiday_info,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// v1.3.0 新增欄位
+	Suitable   []string    `protobuf:"bytes,12,rep,name=suitable,proto3" json:"suitable,omitempty"`     // 宜
+	Avoidable  []string    `protobuf:"bytes,13,rep,name=avoidable,proto3" json:"avoidable,omitempty"`   // 忌
+	Directions *Directions `protobuf:"bytes,14,opt,name=directions,proto3" json:"directions,omitempty"` // 吉神方位
+	// v1.4.0 新增欄位 - 擴充神煞與節日
+	Mansion          *Mansion         `protobuf:"bytes,15,opt,name=mansion,proto3" json:"mansion,omitempty"`                                             // 二十八星宿
+	DailyDeity       *DailyDeity      `protobuf:"bytes,16,opt,name=daily_deity,json=dailyDeity,proto3" json:"daily_deity,omitempty"`                     // 值神
+	FetalGod         *FetalGod        `protobuf:"bytes,17,opt,name=fetal_god,json=fetalGod,proto3" json:"fetal_god,omitempty"`                           // 胎神
+	ClashSha         *ClashSha        `protobuf:"bytes,18,opt,name=clash_sha,json=clashSha,proto3" json:"clash_sha,omitempty"`                           // 沖煞
+	LunarFestivals   []*LunarFestival `protobuf:"bytes,19,rep,name=lunar_festivals,json=lunarFestivals,proto3" json:"lunar_festivals,omitempty"`         // 農曆宗教節日列表
+	ChinaHolidayInfo *HolidayInfo     `protobuf:"bytes,20,opt,name=china_holiday_info,json=chinaHolidayInfo,proto3" json:"china_holiday_info,omitempty"` // 大陸行政假期
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *GetCalendarResponse) Reset() {
@@ -185,6 +196,69 @@ func (x *GetCalendarResponse) GetShenSha() []*ShenSha {
 func (x *GetCalendarResponse) GetHolidayInfo() *HolidayInfo {
 	if x != nil {
 		return x.HolidayInfo
+	}
+	return nil
+}
+
+func (x *GetCalendarResponse) GetSuitable() []string {
+	if x != nil {
+		return x.Suitable
+	}
+	return nil
+}
+
+func (x *GetCalendarResponse) GetAvoidable() []string {
+	if x != nil {
+		return x.Avoidable
+	}
+	return nil
+}
+
+func (x *GetCalendarResponse) GetDirections() *Directions {
+	if x != nil {
+		return x.Directions
+	}
+	return nil
+}
+
+func (x *GetCalendarResponse) GetMansion() *Mansion {
+	if x != nil {
+		return x.Mansion
+	}
+	return nil
+}
+
+func (x *GetCalendarResponse) GetDailyDeity() *DailyDeity {
+	if x != nil {
+		return x.DailyDeity
+	}
+	return nil
+}
+
+func (x *GetCalendarResponse) GetFetalGod() *FetalGod {
+	if x != nil {
+		return x.FetalGod
+	}
+	return nil
+}
+
+func (x *GetCalendarResponse) GetClashSha() *ClashSha {
+	if x != nil {
+		return x.ClashSha
+	}
+	return nil
+}
+
+func (x *GetCalendarResponse) GetLunarFestivals() []*LunarFestival {
+	if x != nil {
+		return x.LunarFestivals
+	}
+	return nil
+}
+
+func (x *GetCalendarResponse) GetChinaHolidayInfo() *HolidayInfo {
+	if x != nil {
+		return x.ChinaHolidayInfo
 	}
 	return nil
 }
@@ -497,13 +571,427 @@ func (x *HolidayInfo) GetName() string {
 	return ""
 }
 
+// Directions 吉神方位 (v1.3.0 新增)
+type Directions struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Wealth        string                 `protobuf:"bytes,1,opt,name=wealth,proto3" json:"wealth,omitempty"`   // 財神方位
+	Fortune       string                 `protobuf:"bytes,2,opt,name=fortune,proto3" json:"fortune,omitempty"` // 福神方位
+	Study         string                 `protobuf:"bytes,3,opt,name=study,proto3" json:"study,omitempty"`     // 文曲方位
+	Love          string                 `protobuf:"bytes,4,opt,name=love,proto3" json:"love,omitempty"`       // 喜神方位
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Directions) Reset() {
+	*x = Directions{}
+	mi := &file_api_v1_lunar_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Directions) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Directions) ProtoMessage() {}
+
+func (x *Directions) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_lunar_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Directions.ProtoReflect.Descriptor instead.
+func (*Directions) Descriptor() ([]byte, []int) {
+	return file_api_v1_lunar_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *Directions) GetWealth() string {
+	if x != nil {
+		return x.Wealth
+	}
+	return ""
+}
+
+func (x *Directions) GetFortune() string {
+	if x != nil {
+		return x.Fortune
+	}
+	return ""
+}
+
+func (x *Directions) GetStudy() string {
+	if x != nil {
+		return x.Study
+	}
+	return ""
+}
+
+func (x *Directions) GetLove() string {
+	if x != nil {
+		return x.Love
+	}
+	return ""
+}
+
+// Mansion 二十八星宿 (v1.4.0 新增)
+type Mansion struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`                         // 星宿名 (角、亢、氐...)
+	Animal        string                 `protobuf:"bytes,2,opt,name=animal,proto3" json:"animal,omitempty"`                     // 對應動物 (蛟、龍、貉...)
+	FullName      string                 `protobuf:"bytes,3,opt,name=full_name,json=fullName,proto3" json:"full_name,omitempty"` // 全名 (角木蛟、亢金龍...)
+	Palace        string                 `protobuf:"bytes,4,opt,name=palace,proto3" json:"palace,omitempty"`                     // 宮位 (東方青龍等)
+	Element       string                 `protobuf:"bytes,5,opt,name=element,proto3" json:"element,omitempty"`                   // 五行
+	Index         int32                  `protobuf:"varint,6,opt,name=index,proto3" json:"index,omitempty"`                      // 索引 0-27
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Mansion) Reset() {
+	*x = Mansion{}
+	mi := &file_api_v1_lunar_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Mansion) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Mansion) ProtoMessage() {}
+
+func (x *Mansion) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_lunar_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Mansion.ProtoReflect.Descriptor instead.
+func (*Mansion) Descriptor() ([]byte, []int) {
+	return file_api_v1_lunar_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *Mansion) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Mansion) GetAnimal() string {
+	if x != nil {
+		return x.Animal
+	}
+	return ""
+}
+
+func (x *Mansion) GetFullName() string {
+	if x != nil {
+		return x.FullName
+	}
+	return ""
+}
+
+func (x *Mansion) GetPalace() string {
+	if x != nil {
+		return x.Palace
+	}
+	return ""
+}
+
+func (x *Mansion) GetElement() string {
+	if x != nil {
+		return x.Element
+	}
+	return ""
+}
+
+func (x *Mansion) GetIndex() int32 {
+	if x != nil {
+		return x.Index
+	}
+	return 0
+}
+
+// DailyDeity 值神 (v1.4.0 新增)
+type DailyDeity struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"` // 值神名稱
+	Type          string                 `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"` // 吉/凶/中
+	Desc          string                 `protobuf:"bytes,3,opt,name=desc,proto3" json:"desc,omitempty"` // 說明
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DailyDeity) Reset() {
+	*x = DailyDeity{}
+	mi := &file_api_v1_lunar_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DailyDeity) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DailyDeity) ProtoMessage() {}
+
+func (x *DailyDeity) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_lunar_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DailyDeity.ProtoReflect.Descriptor instead.
+func (*DailyDeity) Descriptor() ([]byte, []int) {
+	return file_api_v1_lunar_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *DailyDeity) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *DailyDeity) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *DailyDeity) GetDesc() string {
+	if x != nil {
+		return x.Desc
+	}
+	return ""
+}
+
+// FetalGod 胎神 (v1.4.0 新增)
+type FetalGod struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Position      string                 `protobuf:"bytes,1,opt,name=position,proto3" json:"position,omitempty"`       // 胎神位置
+	Description   string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"` // 詳細說明
+	Taboo         string                 `protobuf:"bytes,3,opt,name=taboo,proto3" json:"taboo,omitempty"`             // 禁忌事項
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FetalGod) Reset() {
+	*x = FetalGod{}
+	mi := &file_api_v1_lunar_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FetalGod) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FetalGod) ProtoMessage() {}
+
+func (x *FetalGod) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_lunar_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FetalGod.ProtoReflect.Descriptor instead.
+func (*FetalGod) Descriptor() ([]byte, []int) {
+	return file_api_v1_lunar_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *FetalGod) GetPosition() string {
+	if x != nil {
+		return x.Position
+	}
+	return ""
+}
+
+func (x *FetalGod) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *FetalGod) GetTaboo() string {
+	if x != nil {
+		return x.Taboo
+	}
+	return ""
+}
+
+// ClashSha 沖煞 (v1.4.0 新增)
+type ClashSha struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ClashZodiac   string                 `protobuf:"bytes,1,opt,name=clash_zodiac,json=clashZodiac,proto3" json:"clash_zodiac,omitempty"`    // 沖生肖 (如：沖猴)
+	ClashBranch   string                 `protobuf:"bytes,2,opt,name=clash_branch,json=clashBranch,proto3" json:"clash_branch,omitempty"`    // 沖地支 (如：申)
+	ShaDirection  string                 `protobuf:"bytes,3,opt,name=sha_direction,json=shaDirection,proto3" json:"sha_direction,omitempty"` // 煞方向 (如：煞北)
+	ShaDesc       string                 `protobuf:"bytes,4,opt,name=sha_desc,json=shaDesc,proto3" json:"sha_desc,omitempty"`                // 煞說明
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ClashSha) Reset() {
+	*x = ClashSha{}
+	mi := &file_api_v1_lunar_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClashSha) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClashSha) ProtoMessage() {}
+
+func (x *ClashSha) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_lunar_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClashSha.ProtoReflect.Descriptor instead.
+func (*ClashSha) Descriptor() ([]byte, []int) {
+	return file_api_v1_lunar_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ClashSha) GetClashZodiac() string {
+	if x != nil {
+		return x.ClashZodiac
+	}
+	return ""
+}
+
+func (x *ClashSha) GetClashBranch() string {
+	if x != nil {
+		return x.ClashBranch
+	}
+	return ""
+}
+
+func (x *ClashSha) GetShaDirection() string {
+	if x != nil {
+		return x.ShaDirection
+	}
+	return ""
+}
+
+func (x *ClashSha) GetShaDesc() string {
+	if x != nil {
+		return x.ShaDesc
+	}
+	return ""
+}
+
+// LunarFestival 農曆宗教節日 (v1.4.0 新增)
+type LunarFestival struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`               // 節日名稱
+	Type          string                 `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`               // 類型：道教/佛教/民間/民俗
+	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"` // 說明
+	Priority      int32                  `protobuf:"varint,4,opt,name=priority,proto3" json:"priority,omitempty"`      // 優先級
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LunarFestival) Reset() {
+	*x = LunarFestival{}
+	mi := &file_api_v1_lunar_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LunarFestival) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LunarFestival) ProtoMessage() {}
+
+func (x *LunarFestival) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_lunar_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LunarFestival.ProtoReflect.Descriptor instead.
+func (*LunarFestival) Descriptor() ([]byte, []int) {
+	return file_api_v1_lunar_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *LunarFestival) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *LunarFestival) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *LunarFestival) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *LunarFestival) GetPriority() int32 {
+	if x != nil {
+		return x.Priority
+	}
+	return 0
+}
+
 var File_api_v1_lunar_proto protoreflect.FileDescriptor
 
 const file_api_v1_lunar_proto_rawDesc = "" +
 	"\n" +
 	"\x12api/v1/lunar.proto\x12\x06api.v1\"(\n" +
 	"\x12GetCalendarRequest\x12\x12\n" +
-	"\x04date\x18\x01 \x01(\tR\x04date\"\xb9\x03\n" +
+	"\x04date\x18\x01 \x01(\tR\x04date\"\xe8\x06\n" +
 	"\x13GetCalendarResponse\x12%\n" +
 	"\x0egregorian_date\x18\x01 \x01(\tR\rgregorianDate\x12\x1d\n" +
 	"\n" +
@@ -518,7 +1006,19 @@ const file_api_v1_lunar_proto_rawDesc = "" +
 	"\x0etwelve_officer\x18\t \x01(\tR\rtwelveOfficer\x12*\n" +
 	"\bshen_sha\x18\n" +
 	" \x03(\v2\x0f.api.v1.ShenShaR\ashenSha\x126\n" +
-	"\fholiday_info\x18\v \x01(\v2\x13.api.v1.HolidayInfoR\vholidayInfo\"\x83\x01\n" +
+	"\fholiday_info\x18\v \x01(\v2\x13.api.v1.HolidayInfoR\vholidayInfo\x12\x1a\n" +
+	"\bsuitable\x18\f \x03(\tR\bsuitable\x12\x1c\n" +
+	"\tavoidable\x18\r \x03(\tR\tavoidable\x122\n" +
+	"\n" +
+	"directions\x18\x0e \x01(\v2\x12.api.v1.DirectionsR\n" +
+	"directions\x12)\n" +
+	"\amansion\x18\x0f \x01(\v2\x0f.api.v1.MansionR\amansion\x123\n" +
+	"\vdaily_deity\x18\x10 \x01(\v2\x12.api.v1.DailyDeityR\n" +
+	"dailyDeity\x12-\n" +
+	"\tfetal_god\x18\x11 \x01(\v2\x10.api.v1.FetalGodR\bfetalGod\x12-\n" +
+	"\tclash_sha\x18\x12 \x01(\v2\x10.api.v1.ClashShaR\bclashSha\x12>\n" +
+	"\x0flunar_festivals\x18\x13 \x03(\v2\x15.api.v1.LunarFestivalR\x0elunarFestivals\x12A\n" +
+	"\x12china_holiday_info\x18\x14 \x01(\v2\x13.api.v1.HolidayInfoR\x10chinaHolidayInfo\"\x83\x01\n" +
 	"\tLunarInfo\x12\x12\n" +
 	"\x04year\x18\x01 \x01(\x05R\x04year\x12\x14\n" +
 	"\x05month\x18\x02 \x01(\x05R\x05month\x12\x10\n" +
@@ -540,7 +1040,39 @@ const file_api_v1_lunar_proto_rawDesc = "" +
 	"\vHolidayInfo\x12\x1d\n" +
 	"\n" +
 	"is_holiday\x18\x01 \x01(\bR\tisHoliday\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name2V\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"h\n" +
+	"\n" +
+	"Directions\x12\x16\n" +
+	"\x06wealth\x18\x01 \x01(\tR\x06wealth\x12\x18\n" +
+	"\afortune\x18\x02 \x01(\tR\afortune\x12\x14\n" +
+	"\x05study\x18\x03 \x01(\tR\x05study\x12\x12\n" +
+	"\x04love\x18\x04 \x01(\tR\x04love\"\x9a\x01\n" +
+	"\aMansion\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x16\n" +
+	"\x06animal\x18\x02 \x01(\tR\x06animal\x12\x1b\n" +
+	"\tfull_name\x18\x03 \x01(\tR\bfullName\x12\x16\n" +
+	"\x06palace\x18\x04 \x01(\tR\x06palace\x12\x18\n" +
+	"\aelement\x18\x05 \x01(\tR\aelement\x12\x14\n" +
+	"\x05index\x18\x06 \x01(\x05R\x05index\"H\n" +
+	"\n" +
+	"DailyDeity\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
+	"\x04type\x18\x02 \x01(\tR\x04type\x12\x12\n" +
+	"\x04desc\x18\x03 \x01(\tR\x04desc\"^\n" +
+	"\bFetalGod\x12\x1a\n" +
+	"\bposition\x18\x01 \x01(\tR\bposition\x12 \n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x14\n" +
+	"\x05taboo\x18\x03 \x01(\tR\x05taboo\"\x90\x01\n" +
+	"\bClashSha\x12!\n" +
+	"\fclash_zodiac\x18\x01 \x01(\tR\vclashZodiac\x12!\n" +
+	"\fclash_branch\x18\x02 \x01(\tR\vclashBranch\x12#\n" +
+	"\rsha_direction\x18\x03 \x01(\tR\fshaDirection\x12\x19\n" +
+	"\bsha_desc\x18\x04 \x01(\tR\ashaDesc\"u\n" +
+	"\rLunarFestival\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
+	"\x04type\x18\x02 \x01(\tR\x04type\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x1a\n" +
+	"\bpriority\x18\x04 \x01(\x05R\bpriority2V\n" +
 	"\fLunarService\x12F\n" +
 	"\vGetCalendar\x12\x1a.api.v1.GetCalendarRequest\x1a\x1b.api.v1.GetCalendarResponseB1Z/github.com/kaecer68/lunar-zenith/api/v1;lunarv1b\x06proto3"
 
@@ -556,7 +1088,7 @@ func file_api_v1_lunar_proto_rawDescGZIP() []byte {
 	return file_api_v1_lunar_proto_rawDescData
 }
 
-var file_api_v1_lunar_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_api_v1_lunar_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_api_v1_lunar_proto_goTypes = []any{
 	(*GetCalendarRequest)(nil),  // 0: api.v1.GetCalendarRequest
 	(*GetCalendarResponse)(nil), // 1: api.v1.GetCalendarResponse
@@ -565,20 +1097,33 @@ var file_api_v1_lunar_proto_goTypes = []any{
 	(*SolarTerm)(nil),           // 4: api.v1.SolarTerm
 	(*ShenSha)(nil),             // 5: api.v1.ShenSha
 	(*HolidayInfo)(nil),         // 6: api.v1.HolidayInfo
+	(*Directions)(nil),          // 7: api.v1.Directions
+	(*Mansion)(nil),             // 8: api.v1.Mansion
+	(*DailyDeity)(nil),          // 9: api.v1.DailyDeity
+	(*FetalGod)(nil),            // 10: api.v1.FetalGod
+	(*ClashSha)(nil),            // 11: api.v1.ClashSha
+	(*LunarFestival)(nil),       // 12: api.v1.LunarFestival
 }
 var file_api_v1_lunar_proto_depIdxs = []int32{
-	2, // 0: api.v1.GetCalendarResponse.lunar:type_name -> api.v1.LunarInfo
-	3, // 1: api.v1.GetCalendarResponse.pillars:type_name -> api.v1.Pillars
-	4, // 2: api.v1.GetCalendarResponse.solar_term:type_name -> api.v1.SolarTerm
-	5, // 3: api.v1.GetCalendarResponse.shen_sha:type_name -> api.v1.ShenSha
-	6, // 4: api.v1.GetCalendarResponse.holiday_info:type_name -> api.v1.HolidayInfo
-	0, // 5: api.v1.LunarService.GetCalendar:input_type -> api.v1.GetCalendarRequest
-	1, // 6: api.v1.LunarService.GetCalendar:output_type -> api.v1.GetCalendarResponse
-	6, // [6:7] is the sub-list for method output_type
-	5, // [5:6] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	2,  // 0: api.v1.GetCalendarResponse.lunar:type_name -> api.v1.LunarInfo
+	3,  // 1: api.v1.GetCalendarResponse.pillars:type_name -> api.v1.Pillars
+	4,  // 2: api.v1.GetCalendarResponse.solar_term:type_name -> api.v1.SolarTerm
+	5,  // 3: api.v1.GetCalendarResponse.shen_sha:type_name -> api.v1.ShenSha
+	6,  // 4: api.v1.GetCalendarResponse.holiday_info:type_name -> api.v1.HolidayInfo
+	7,  // 5: api.v1.GetCalendarResponse.directions:type_name -> api.v1.Directions
+	8,  // 6: api.v1.GetCalendarResponse.mansion:type_name -> api.v1.Mansion
+	9,  // 7: api.v1.GetCalendarResponse.daily_deity:type_name -> api.v1.DailyDeity
+	10, // 8: api.v1.GetCalendarResponse.fetal_god:type_name -> api.v1.FetalGod
+	11, // 9: api.v1.GetCalendarResponse.clash_sha:type_name -> api.v1.ClashSha
+	12, // 10: api.v1.GetCalendarResponse.lunar_festivals:type_name -> api.v1.LunarFestival
+	6,  // 11: api.v1.GetCalendarResponse.china_holiday_info:type_name -> api.v1.HolidayInfo
+	0,  // 12: api.v1.LunarService.GetCalendar:input_type -> api.v1.GetCalendarRequest
+	1,  // 13: api.v1.LunarService.GetCalendar:output_type -> api.v1.GetCalendarResponse
+	13, // [13:14] is the sub-list for method output_type
+	12, // [12:13] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_api_v1_lunar_proto_init() }
@@ -592,7 +1137,7 @@ func file_api_v1_lunar_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_v1_lunar_proto_rawDesc), len(file_api_v1_lunar_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

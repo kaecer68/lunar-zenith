@@ -1,0 +1,527 @@
+[
+  {
+    "date": "20240101",
+    "name": "元旦",
+    "is_holiday": true,
+    "description": "新年第一天",
+    "category": "holiday"
+  },
+  {
+    "date": "20250101",
+    "name": "元旦",
+    "is_holiday": true,
+    "description": "新年第一天",
+    "category": "holiday"
+  },
+  {
+    "date": "20260101",
+    "name": "元旦",
+    "is_holiday": true,
+    "description": "新年第一天",
+    "category": "holiday"
+  },
+  {
+    "date": "20240209",
+    "name": "春節",
+    "is_holiday": true,
+    "description": "農曆除夕",
+    "category": "holiday"
+  },
+  {
+    "date": "20240210",
+    "name": "春節",
+    "is_holiday": true,
+    "description": "農曆大年初一",
+    "category": "holiday"
+  },
+  {
+    "date": "20240211",
+    "name": "春節",
+    "is_holiday": true,
+    "description": "農曆大年初二",
+    "category": "holiday"
+  },
+  {
+    "date": "20240212",
+    "name": "春節",
+    "is_holiday": true,
+    "description": "農曆大年初三",
+    "category": "holiday"
+  },
+  {
+    "date": "20240213",
+    "name": "春節",
+    "is_holiday": true,
+    "description": "農曆大年初四",
+    "category": "holiday"
+  },
+  {
+    "date": "20240214",
+    "name": "春節",
+    "is_holiday": true,
+    "description": "農曆大年初五",
+    "category": "holiday"
+  },
+  {
+    "date": "20240215",
+    "name": "春節",
+    "is_holiday": true,
+    "description": "農曆大年初六",
+    "category": "holiday"
+  },
+  {
+    "date": "20250128",
+    "name": "春節",
+    "is_holiday": true,
+    "description": "農曆除夕",
+    "category": "holiday"
+  },
+  {
+    "date": "20250129",
+    "name": "春節",
+    "is_holiday": true,
+    "description": "農曆大年初一",
+    "category": "holiday"
+  },
+  {
+    "date": "20250130",
+    "name": "春節",
+    "is_holiday": true,
+    "description": "農曆大年初二",
+    "category": "holiday"
+  },
+  {
+    "date": "20250131",
+    "name": "春節",
+    "is_holiday": true,
+    "description": "農曆大年初三",
+    "category": "holiday"
+  },
+  {
+    "date": "20250201",
+    "name": "春節",
+    "is_holiday": true,
+    "description": "農曆大年初四",
+    "category": "holiday"
+  },
+  {
+    "date": "20250202",
+    "name": "春節",
+    "is_holiday": true,
+    "description": "農曆大年初五",
+    "category": "holiday"
+  },
+  {
+    "date": "20250203",
+    "name": "春節",
+    "is_holiday": true,
+    "description": "農曆大年初六",
+    "category": "holiday"
+  },
+  {
+    "date": "20260216",
+    "name": "春節",
+    "is_holiday": true,
+    "description": "農曆除夕",
+    "category": "holiday"
+  },
+  {
+    "date": "20260217",
+    "name": "春節",
+    "is_holiday": true,
+    "description": "農曆大年初一",
+    "category": "holiday"
+  },
+  {
+    "date": "20260218",
+    "name": "春節",
+    "is_holiday": true,
+    "description": "農曆大年初二",
+    "category": "holiday"
+  },
+  {
+    "date": "20260219",
+    "name": "春節",
+    "is_holiday": true,
+    "description": "農曆大年初三",
+    "category": "holiday"
+  },
+  {
+    "date": "20260220",
+    "name": "春節",
+    "is_holiday": true,
+    "description": "農曆大年初四",
+    "category": "holiday"
+  },
+  {
+    "date": "20260221",
+    "name": "春節",
+    "is_holiday": true,
+    "description": "農曆大年初五",
+    "category": "holiday"
+  },
+  {
+    "date": "20260222",
+    "name": "春節",
+    "is_holiday": true,
+    "description": "農曆大年初六",
+    "category": "holiday"
+  },
+  {
+    "date": "20240404",
+    "name": "清明節",
+    "is_holiday": true,
+    "description": "清明節",
+    "category": "holiday"
+  },
+  {
+    "date": "20240405",
+    "name": "清明節",
+    "is_holiday": true,
+    "description": "清明節",
+    "category": "holiday"
+  },
+  {
+    "date": "20240406",
+    "name": "清明節",
+    "is_holiday": true,
+    "description": "清明節",
+    "category": "holiday"
+  },
+  {
+    "date": "20250404",
+    "name": "清明節",
+    "is_holiday": true,
+    "description": "清明節",
+    "category": "holiday"
+  },
+  {
+    "date": "20250405",
+    "name": "清明節",
+    "is_holiday": true,
+    "description": "清明節",
+    "category": "holiday"
+  },
+  {
+    "date": "20250406",
+    "name": "清明節",
+    "is_holiday": true,
+    "description": "清明節",
+    "category": "holiday"
+  },
+  {
+    "date": "20260404",
+    "name": "清明節",
+    "is_holiday": true,
+    "description": "清明節",
+    "category": "holiday"
+  },
+  {
+    "date": "20260405",
+    "name": "清明節",
+    "is_holiday": true,
+    "description": "清明節",
+    "category": "holiday"
+  },
+  {
+    "date": "20260406",
+    "name": "清明節",
+    "is_holiday": true,
+    "description": "清明節",
+    "category": "holiday"
+  },
+  {
+    "date": "20240501",
+    "name": "勞動節",
+    "is_holiday": true,
+    "description": "勞動節",
+    "category": "holiday"
+  },
+  {
+    "date": "20240502",
+    "name": "勞動節",
+    "is_holiday": true,
+    "description": "勞動節",
+    "category": "holiday"
+  },
+  {
+    "date": "20240503",
+    "name": "勞動節",
+    "is_holiday": true,
+    "description": "勞動節",
+    "category": "holiday"
+  },
+  {
+    "date": "20240504",
+    "name": "勞動節",
+    "is_holiday": true,
+    "description": "勞動節",
+    "category": "holiday"
+  },
+  {
+    "date": "20240505",
+    "name": "勞動節",
+    "is_holiday": true,
+    "description": "勞動節",
+    "category": "holiday"
+  },
+  {
+    "date": "20250501",
+    "name": "勞動節",
+    "is_holiday": true,
+    "description": "勞動節",
+    "category": "holiday"
+  },
+  {
+    "date": "20250502",
+    "name": "勞動節",
+    "is_holiday": true,
+    "description": "勞動節",
+    "category": "holiday"
+  },
+  {
+    "date": "20250503",
+    "name": "勞動節",
+    "is_holiday": true,
+    "description": "勞動節",
+    "category": "holiday"
+  },
+  {
+    "date": "20250504",
+    "name": "勞動節",
+    "is_holiday": true,
+    "description": "勞動節",
+    "category": "holiday"
+  },
+  {
+    "date": "20250505",
+    "name": "勞動節",
+    "is_holiday": true,
+    "description": "勞動節",
+    "category": "holiday"
+  },
+  {
+    "date": "20260501",
+    "name": "勞動節",
+    "is_holiday": true,
+    "description": "勞動節",
+    "category": "holiday"
+  },
+  {
+    "date": "20260502",
+    "name": "勞動節",
+    "is_holiday": true,
+    "description": "勞動節",
+    "category": "holiday"
+  },
+  {
+    "date": "20260503",
+    "name": "勞動節",
+    "is_holiday": true,
+    "description": "勞動節",
+    "category": "holiday"
+  },
+  {
+    "date": "20260504",
+    "name": "勞動節",
+    "is_holiday": true,
+    "description": "勞動節",
+    "category": "holiday"
+  },
+  {
+    "date": "20260505",
+    "name": "勞動節",
+    "is_holiday": true,
+    "description": "勞動節",
+    "category": "holiday"
+  },
+  {
+    "date": "20240610",
+    "name": "端午節",
+    "is_holiday": true,
+    "description": "農曆五月初五",
+    "category": "holiday"
+  },
+  {
+    "date": "20250531",
+    "name": "端午節",
+    "is_holiday": true,
+    "description": "農曆五月初五",
+    "category": "holiday"
+  },
+  {
+    "date": "20260619",
+    "name": "端午節",
+    "is_holiday": true,
+    "description": "農曆五月初五",
+    "category": "holiday"
+  },
+  {
+    "date": "20240917",
+    "name": "中秋節",
+    "is_holiday": true,
+    "description": "農曆八月十五",
+    "category": "holiday"
+  },
+  {
+    "date": "20251006",
+    "name": "中秋節",
+    "is_holiday": true,
+    "description": "農曆八月十五",
+    "category": "holiday"
+  },
+  {
+    "date": "20260925",
+    "name": "中秋節",
+    "is_holiday": true,
+    "description": "農曆八月十五",
+    "category": "holiday"
+  },
+  {
+    "date": "20241001",
+    "name": "國慶節",
+    "is_holiday": true,
+    "description": "國慶節",
+    "category": "holiday"
+  },
+  {
+    "date": "20241002",
+    "name": "國慶節",
+    "is_holiday": true,
+    "description": "國慶節",
+    "category": "holiday"
+  },
+  {
+    "date": "20241003",
+    "name": "國慶節",
+    "is_holiday": true,
+    "description": "國慶節",
+    "category": "holiday"
+  },
+  {
+    "date": "20241004",
+    "name": "國慶節",
+    "is_holiday": true,
+    "description": "國慶節",
+    "category": "holiday"
+  },
+  {
+    "date": "20241005",
+    "name": "國慶節",
+    "is_holiday": true,
+    "description": "國慶節",
+    "category": "holiday"
+  },
+  {
+    "date": "20241006",
+    "name": "國慶節",
+    "is_holiday": true,
+    "description": "國慶節",
+    "category": "holiday"
+  },
+  {
+    "date": "20241007",
+    "name": "國慶節",
+    "is_holiday": true,
+    "description": "國慶節",
+    "category": "holiday"
+  },
+  {
+    "date": "20251001",
+    "name": "國慶節",
+    "is_holiday": true,
+    "description": "國慶節",
+    "category": "holiday"
+  },
+  {
+    "date": "20251002",
+    "name": "國慶節",
+    "is_holiday": true,
+    "description": "國慶節",
+    "category": "holiday"
+  },
+  {
+    "date": "20251003",
+    "name": "國慶節",
+    "is_holiday": true,
+    "description": "國慶節",
+    "category": "holiday"
+  },
+  {
+    "date": "20251004",
+    "name": "國慶節",
+    "is_holiday": true,
+    "description": "國慶節",
+    "category": "holiday"
+  },
+  {
+    "date": "20251005",
+    "name": "國慶節",
+    "is_holiday": true,
+    "description": "國慶節",
+    "category": "holiday"
+  },
+  {
+    "date": "20251006",
+    "name": "國慶節",
+    "is_holiday": true,
+    "description": "國慶節",
+    "category": "holiday"
+  },
+  {
+    "date": "20251007",
+    "name": "國慶節",
+    "is_holiday": true,
+    "description": "國慶節",
+    "category": "holiday"
+  },
+  {
+    "date": "20261001",
+    "name": "國慶節",
+    "is_holiday": true,
+    "description": "國慶節",
+    "category": "holiday"
+  },
+  {
+    "date": "20261002",
+    "name": "國慶節",
+    "is_holiday": true,
+    "description": "國慶節",
+    "category": "holiday"
+  },
+  {
+    "date": "20261003",
+    "name": "國慶節",
+    "is_holiday": true,
+    "description": "國慶節",
+    "category": "holiday"
+  },
+  {
+    "date": "20261004",
+    "name": "國慶節",
+    "is_holiday": true,
+    "description": "國慶節",
+    "category": "holiday"
+  },
+  {
+    "date": "20261005",
+    "name": "國慶節",
+    "is_holiday": true,
+    "description": "國慶節",
+    "category": "holiday"
+  },
+  {
+    "date": "20261006",
+    "name": "國慶節",
+    "is_holiday": true,
+    "description": "國慶節",
+    "category": "holiday"
+  },
+  {
+    "date": "20261007",
+    "name": "國慶節",
+    "is_holiday": true,
+    "description": "國慶節",
+    "category": "holiday"
+  }
+]

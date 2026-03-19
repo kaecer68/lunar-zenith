@@ -1,10 +1,18 @@
 package service
 
 import (
+	"time"
+
 	"github.com/kaecer68/lunar-zenith/pkg/celestial"
 	"github.com/kaecer68/lunar-zenith/pkg/zodiac"
-	"time"
 )
+
+// FestivalInfo 節日資訊
+type FestivalInfo struct {
+	Name        string `json:"name"`
+	Type        string `json:"type"`
+	Description string `json:"description"`
+}
 
 // CalendarResponse 曆法全家桶：聚合所有維度的數據
 type CalendarResponse struct {
@@ -28,24 +36,50 @@ type CalendarResponse struct {
 	TwelveOfficer string                 `json:"twelve_officer"`
 	ShenSha       []zodiac.CommonShenSha `json:"shen_sha"`
 
-	// 6. 行政假期
+	// 6. 黃曆宜忌 (v1.3.0 新增)
+	Suitable   []string   `json:"suitable"`   // 宜
+	Avoidable  []string   `json:"avoidable"`  // 忌
+	Directions Directions `json:"directions"` // 吉神方位
+
+	// 7. 行政假期
 	HolidayInfo struct {
 		IsHoliday bool   `json:"is_holiday"`
 		Name      string `json:"name"`
 	} `json:"holiday_info"`
+
+	// 7.5 大陸行政假期
+	ChinaHolidayInfo struct {
+		IsHoliday bool   `json:"is_holiday"`
+		Name      string `json:"name"`
+	} `json:"china_holiday_info"`
+
+	// 8. 精密天文數值 (UI 擴充)
+	MoonLongitude  float64 `json:"moon_longitude"`  // 月球黃經 (度)
+	MoonElongation float64 `json:"moon_elongation"` // 日月黃經差 (度, 0=朔 180=望)
+
+	// 9. 擴充神煞 (二十八星宿、值神、胎神、沖煞)
+	Mansion    zodiac.MansionInfo    `json:"mansion"`     // 二十八星宿
+	DailyDeity zodiac.DailyDeityInfo `json:"daily_deity"` // 值神
+	FetalGod   zodiac.FetalGodInfo   `json:"fetal_god"`   // 胎神
+	ClashSha   zodiac.ClashShaInfo   `json:"clash_sha"`   // 沖煞
+
+	// 10. 農曆宗教節日
+	LunarFestivals []FestivalInfo `json:"lunar_festivals"` // 當日農曆節日列表
 }
 
 // Aggregator 聚合服務
 type Aggregator struct {
-	HolidaySvc *HolidayService
-	LunarEng   *zodiac.LunarEngine
+	HolidaySvc      *HolidayService
+	ChinaHolidaySvc *HolidayService // 大陸假期服務
+	LunarEng        *zodiac.LunarEngine
 }
 
 // NewAggregator 創建聚合器
-func NewAggregator(h *HolidayService) *Aggregator {
+func NewAggregator(h *HolidayService, chinaH *HolidayService) *Aggregator {
 	return &Aggregator{
-		HolidaySvc: h,
-		LunarEng:   &zodiac.LunarEngine{},
+		HolidaySvc:      h,
+		ChinaHolidaySvc: chinaH,
+		LunarEng:        &zodiac.LunarEngine{},
 	}
 }
 
@@ -72,17 +106,53 @@ func (a *Aggregator) GetCalendar(t time.Time) CalendarResponse {
 	officer := zodiac.GetTwelveOfficer(pillars.Month.BranchIndex, pillars.Day.BranchIndex)
 	ss := zodiac.GetYearShenSha(pillars.Year.BranchIndex)
 
+	// 6. 黃曆宜忌 (v1.3.0 新增) - 基於建除十二神和日干
+	suitable, avoidable, directions := CalculateAlmanac(officer, pillars.Day.StemIndex)
+
+	// 7. 精密月球位置
+	moonLon := celestial.MoonLongitude(pt.JDE)
+	moonElong := celestial.MoonPhase(pt.JDE)
+
+	// 8. 擴充神煞 (二十八星宿、值神、胎神、沖煞)
+	// 計算星宿需要節氣月份 (寅月起算 1-12)
+	solarMonth := zodiac.GetSolarMonth(st.Longitude)
+	mansion := zodiac.GetTwentyEightMansion(solarMonth, pillars.Day.StemIndex, pillars.Day.BranchIndex)
+	dailyDeity := zodiac.GetDailyDeity(pillars.Day.BranchIndex)
+	fetalGod := zodiac.GetFetalGod(pillars.Day.StemIndex)
+	clashSha := zodiac.GetClashSha(pillars.Day.BranchIndex)
+
+	// 9. 檢查農曆節日
+	var festivals []FestivalInfo
+	lunarFests := zodiac.GetLunarFestival(lunar.Month, lunar.Day)
+	for _, f := range lunarFests {
+		festivals = append(festivals, FestivalInfo{
+			Name:        f.Name,
+			Type:        f.Type,
+			Description: f.Description,
+		})
+	}
+
 	res := CalendarResponse{
-		GregorianDate: t.Format("2006-01-02"),
-		JulianDay:     pt.JD,
-		DeltaT:        pt.DeltaT,
-		Lunar:         lunar,
-		Buddhist:      rel.FormatBuddhist(),
-		Taoist:        rel.FormatTaoist(),
-		Pillars:       pillars,
-		SolarTerm:     st,
-		TwelveOfficer: officer,
-		ShenSha:       ss,
+		GregorianDate:  t.Format("2006-01-02"),
+		JulianDay:      pt.JD,
+		DeltaT:         pt.DeltaT,
+		Lunar:          lunar,
+		Buddhist:       rel.FormatBuddhist(),
+		Taoist:         rel.FormatTaoist(),
+		Pillars:        pillars,
+		SolarTerm:      st,
+		TwelveOfficer:  officer,
+		ShenSha:        ss,
+		Suitable:       suitable,
+		Avoidable:      avoidable,
+		Directions:     directions,
+		MoonLongitude:  moonLon,
+		MoonElongation: moonElong,
+		Mansion:        mansion,
+		DailyDeity:     dailyDeity,
+		FetalGod:       fetalGod,
+		ClashSha:       clashSha,
+		LunarFestivals: festivals,
 	}
 
 	// 6. 假期 (若已加載)
@@ -90,6 +160,13 @@ func (a *Aggregator) GetCalendar(t time.Time) CalendarResponse {
 		isHol, name := a.HolidaySvc.IsHoliday(t.Format("20060102"))
 		res.HolidayInfo.IsHoliday = isHol
 		res.HolidayInfo.Name = name
+	}
+
+	// 6.5 大陸假期 (若已加載)
+	if a.ChinaHolidaySvc != nil {
+		isHol, name := a.ChinaHolidaySvc.IsHoliday(t.Format("20060102"))
+		res.ChinaHolidayInfo.IsHoliday = isHol
+		res.ChinaHolidayInfo.Name = name
 	}
 
 	return res

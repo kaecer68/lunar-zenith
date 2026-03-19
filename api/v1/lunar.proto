@@ -29,6 +29,19 @@ message GetCalendarResponse {
   repeated ShenSha shen_sha = 10;
   
   HolidayInfo holiday_info = 11;
+  
+  // v1.3.0 新增欄位
+  repeated string suitable = 12;    // 宜
+  repeated string avoidable = 13;   // 忌
+  Directions directions = 14;       // 吉神方位
+  
+  // v1.4.0 新增欄位 - 擴充神煞與節日
+  Mansion mansion = 15;                    // 二十八星宿
+  DailyDeity daily_deity = 16;             // 值神
+  FetalGod fetal_god = 17;                 // 胎神
+  ClashSha clash_sha = 18;                 // 沖煞
+  repeated LunarFestival lunar_festivals = 19;  // 農曆宗教節日列表
+  HolidayInfo china_holiday_info = 20;     // 大陸行政假期
 }
 
 message LunarInfo {
@@ -60,4 +73,52 @@ message ShenSha {
 message HolidayInfo {
   bool is_holiday = 1;
   string name = 2;
+}
+
+// Directions 吉神方位 (v1.3.0 新增)
+message Directions {
+  string wealth = 1;   // 財神方位
+  string fortune = 2;  // 福神方位
+  string study = 3;    // 文曲方位
+  string love = 4;     // 喜神方位
+}
+
+// Mansion 二十八星宿 (v1.4.0 新增)
+message Mansion {
+  string name = 1;      // 星宿名 (角、亢、氐...)
+  string animal = 2;    // 對應動物 (蛟、龍、貉...)
+  string full_name = 3; // 全名 (角木蛟、亢金龍...)
+  string palace = 4;    // 宮位 (東方青龍等)
+  string element = 5;   // 五行
+  int32 index = 6;      // 索引 0-27
+}
+
+// DailyDeity 值神 (v1.4.0 新增)
+message DailyDeity {
+  string name = 1;  // 值神名稱
+  string type = 2;  // 吉/凶/中
+  string desc = 3;  // 說明
+}
+
+// FetalGod 胎神 (v1.4.0 新增)
+message FetalGod {
+  string position = 1;     // 胎神位置
+  string description = 2;  // 詳細說明
+  string taboo = 3;        // 禁忌事項
+}
+
+// ClashSha 沖煞 (v1.4.0 新增)
+message ClashSha {
+  string clash_zodiac = 1;   // 沖生肖 (如：沖猴)
+  string clash_branch = 2;   // 沖地支 (如：申)
+  string sha_direction = 3;  // 煞方向 (如：煞北)
+  string sha_desc = 4;       // 煞說明
+}
+
+// LunarFestival 農曆宗教節日 (v1.4.0 新增)
+message LunarFestival {
+  string name = 1;         // 節日名稱
+  string type = 2;         // 類型：道教/佛教/民間/民俗
+  string description = 3;  // 說明
+  int32 priority = 4;      // 優先級
 }

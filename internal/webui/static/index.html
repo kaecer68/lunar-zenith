@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>算曆之巔 ✦ Lunar Zenith</title>
+<style>
+:root {
+  --bg: #0d0d14;
+  --surface: #16161f;
+  --surface2: #1e1e2d;
+  --border: #2a2a3d;
+  --accent: #c9a84c;
+  --accent2: #e8c97a;
+  --gold-dim: #7a6230;
+  --text: #e8e0d0;
+  --text-dim: #9090a8;
+  --red: #e05555;
+  --green: #4caa7a;
+  --blue: #5580c9;
+  --purple: #9966cc;
+  --teal: #44b0aa;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', 'PingFang TC', 'Noto Sans TC', sans-serif;
+  min-height: 100vh;
+}
+
+/* ─── Header ─────────────────────────── */
+.header {
+  background: linear-gradient(135deg, #1a1428 0%, #0d1020 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-title {
+  display: flex;
+  flex-direction: column;
+}
+.header-title h1 {
+  font-size: 1.4rem;
+  color: var(--accent2);
+  letter-spacing: .08em;
+  font-weight: 700;
+}
+.header-title span {
+  font-size: .75rem;
+  color: var(--text-dim);
+  letter-spacing: .15em;
+}
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.date-input {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 8px 12px;
+  font-size: .9rem;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+}
+.date-input:focus { border-color: var(--accent); }
+.btn {
+  background: linear-gradient(135deg, var(--gold-dim), var(--accent));
+  color: #1a1200;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 8px 18px;
+  font-size: .9rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: .05em;
+  transition: opacity .15s;
+}
+.btn:hover { opacity: .85; }
+.btn-today {
+  background: var(--surface2);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+.btn-today:hover { color: var(--text); border-color: var(--accent); background: var(--surface2); }
+.btn-nav {
+  background: var(--surface2);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 1.1rem;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ─── Layout ─────────────────────────── */
+.main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 16px 60px;
+}
+
+/* ─── Hero Date Card ──────────────────── */
+.hero {
+  background: linear-gradient(135deg, #1c1428 0%, #1a1828 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 20px;
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: center;
+}
+.hero-left {}
+.hero-gregorian {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--accent2);
+  letter-spacing: .04em;
+  line-height: 1.1;
+}
+.hero-weekday {
+  font-size: .95rem;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+.hero-lunar {
+  font-size: 1.1rem;
+  color: var(--text);
+  margin-top: 10px;
+  line-height: 1.6;
+}
+.hero-lunar .label { color: var(--text-dim); font-size: .8rem; }
+.hero-right {
+  text-align: center;
+  min-width: 90px;
+}
+.lunar-day-num {
+  font-size: 3rem;
+  font-weight: 900;
+  color: var(--accent);
+  line-height: 1;
+}
+.lunar-month-label {
+  font-size: .85rem;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+.holiday-badge {
+  display: inline-block;
+  background: var(--red);
+  color: #fff;
+  font-size: .75rem;
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-top: 6px;
+  font-weight: 700;
+}
+
+/* ─── Grid ────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+.grid-wide {
+  grid-column: 1 / -1;
+}
+
+/* ─── Cards ───────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+.card-title {
+  font-size: .7rem;
+  letter-spacing: .18em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-title::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 14px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+/* ─── Pillars (四柱) ─────────────────── */
+.pillars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.pillar {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 6px;
+  text-align: center;
+}
+.pillar-label { font-size: .7rem; color: var(--text-dim); margin-bottom: 6px; }
+.pillar-gz {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--accent2);
+  letter-spacing: .05em;
+}
+.pillar-animal { font-size: .75rem; color: var(--text-dim); margin-top: 4px; }
+.pillar-stem { color: var(--teal); }
+.pillar-branch { color: var(--accent); }
+
+/* ─── Row items ──────────────────────── */
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 8px;
+}
+.info-row:last-child { border-bottom: none; }
+.info-label { font-size: .8rem; color: var(--text-dim); white-space: nowrap; }
+.info-value { font-size: .9rem; color: var(--text); text-align: right; }
+.info-value.accent { color: var(--accent2); font-weight: 700; }
+.info-value.mono { font-family: 'Courier New', monospace; font-size: .82rem; }
+
+/* ─── Solar term badge ───────────────── */
+.solar-term-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #1e2a1e, #1a2418);
+  border: 1px solid #2a4a2a;
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  width: 100%;
+  margin-bottom: 10px;
+}
+.solar-term-name {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--green);
+}
+.solar-term-lon {
+  font-size: .8rem;
+  color: var(--text-dim);
+}
+.solar-term-idx {
+  font-size: .7rem;
+  color: #4c9a4c;
+  background: #1a3020;
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+/* ─── Moon phase ─────────────────────── */
+.moon-display {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0;
+}
+.moon-icon {
+  font-size: 3rem;
+  line-height: 1;
+}
+.moon-info { flex: 1; }
+.moon-phase-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #c8d8f0;
+}
+.moon-phase-bar {
+  height: 6px;
+  background: var(--surface2);
+  border-radius: 3px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+.moon-phase-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3050a0, #c8d8ff);
+  border-radius: 3px;
+  transition: width .4s ease;
+}
+.moon-elongation {
+  font-size: .8rem;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+/* ─── Directions ─────────────────────── */
+.compass {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  margin: 0 auto;
+}
+.compass-ring {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  position: relative;
+  background: radial-gradient(circle, var(--surface2) 60%, var(--bg) 100%);
+}
+.compass-dir {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: .7rem;
+  color: var(--text-dim);
+}
+.compass-dir.north { top: 8%; left: 50%; }
+.compass-dir.south { top: 92%; left: 50%; }
+.compass-dir.east { top: 50%; left: 92%; }
+.compass-dir.west { top: 50%; left: 8%; }
+.compass-dir.ne { top: 15%; left: 82%; }
+.compass-dir.nw { top: 15%; left: 18%; }
+.compass-dir.se { top: 82%; left: 82%; }
+.compass-dir.sw { top: 82%; left: 18%; }
+.dir-dot {
+  position: absolute;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  font-size: .6rem;
+  display: flex; align-items: center; justify-content: center;
+  color: #1a1000;
+  font-weight: 900;
+}
+.dir-dot.wealth { background: var(--accent); }
+.dir-dot.fortune { background: var(--green); }
+.dir-dot.study { background: var(--blue); }
+.dir-dot.love { background: #e066aa; }
+.dir-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  justify-content: center;
+}
+.dir-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: .78rem;
+}
+.dir-legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+
+/* ─── ShenSha / Tags ─────────────────── */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.tag {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: .8rem;
+  font-weight: 600;
+}
+.tag-suitable {
+  background: #1a3020;
+  border: 1px solid #2a5030;
+  color: var(--green);
+}
+.tag-avoidable {
+  background: #301818;
+  border: 1px solid #502828;
+  color: var(--red);
+}
+.tag-shensha {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--purple);
+}
+
+/* ─── Officer badge ──────────────────── */
+.officer-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  font-size: 1.8rem;
+  font-weight: 900;
+  margin-right: 14px;
+}
+.officer-吉 { background: #1a3020; color: var(--green); border: 2px solid #2a5a30; }
+.officer-凶 { background: #301818; color: var(--red); border: 2px solid #5a2828; }
+.officer-中 { background: #1a1a30; color: #8888cc; border: 2px solid #2a2a4a; }
+.officer-info { flex: 1; }
+.officer-name { font-size: 1.3rem; font-weight: 800; }
+.officer-desc { font-size: .8rem; color: var(--text-dim); margin-top: 2px; }
+
+/* ─── Astronomy section ──────────────── */
+.astro-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.astro-row:last-child { border-bottom: none; }
+.astro-icon { font-size: 1.4rem; width: 32px; text-align: center; }
+.astro-body { flex: 1; }
+.astro-name { font-size: .85rem; color: var(--text-dim); }
+.astro-val { font-size: 1rem; font-weight: 700; color: var(--text); }
+.astro-sub { font-size: .75rem; color: var(--text-dim); margin-top: 1px; }
+
+/* ─── Calendar mini grid ─────────────── */
+.mini-cal {
+  width: 100%;
+}
+.mini-cal-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: .7rem;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+.mini-cal-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+.mc-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: .82rem;
+  color: var(--text);
+  transition: background .12s;
+  line-height: 1.2;
+}
+.mc-day:hover { background: var(--surface2); }
+.mc-day.today { background: var(--surface2); border: 1px solid var(--accent); }
+.mc-day.selected { background: var(--accent); color: #1a1000; font-weight: 800; }
+.mc-day.other-month { color: var(--text-dim); opacity: .4; }
+.mc-day.holiday { color: var(--red); }
+.mc-day .mc-lunar { font-size: .6rem; color: var(--text-dim); }
+.mc-day.selected .mc-lunar { color: #5a4000; }
+
+/* ─── Status / Loading ───────────────── */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--text-dim);
+}
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.error-msg {
+  color: var(--red);
+  padding: 20px;
+  text-align: center;
+  font-size: .9rem;
+}
+
+/* ─── Footer ─────────────────────────── */
+.footer {
+  margin-top: 40px;
+  padding: 16px;
+  text-align: center;
+  font-size: .72rem;
+  color: var(--text-dim);
+  border-top: 1px solid var(--border);
+  line-height: 1.8;
+}
+
+/* ─── Responsive ─────────────────────── */
+@media (max-width: 600px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero-right { display: none; }
+  .hero-gregorian { font-size: 1.8rem; }
+  .pillars { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .pillar-gz { font-size: 1.2rem; }
+  .grid { grid-template-columns: 1fr; }
+  .header-title h1 { font-size: 1.1rem; }
+  .compass { width: 130px; height: 130px; }
+}
+@media (max-width: 400px) {
+  .pillars { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     HEADER
+═══════════════════════════════════════ -->
+<header class="header">
+  <div class="header-title">
+    <h1>算曆之巔</h1>
+    <span>LUNAR ZENITH · 天文曆法查閱系統</span>
+  </div>
+  <div class="header-controls">
+    <button class="btn btn-nav btn-today" id="prevDay" title="前一天">&#8249;</button>
+    <input type="date" class="date-input" id="datePicker">
+    <button class="btn btn-nav btn-today" id="nextDay" title="後一天">&#8250;</button>
+    <button class="btn btn-today" id="todayBtn">今日</button>
+    <button class="btn" id="queryBtn">查詢</button>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════
+     MAIN CONTENT
+═══════════════════════════════════════ -->
+<div class="main">
+  <div id="app">
+    <div class="loading"><div class="spinner"></div><span>載入中…</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════ -->
+<script>
+// ── Utilities ─────────────────────────────
+const $ = id => document.getElementById(id);
+
+const WEEKDAYS = ['日','一','二','三','四','五','六'];
+const LUNAR_NUMS = ['','初一','初二','初三','初四','初五','初六','初七','初八','初九','初十',
+  '十一','十二','十三','十四','十五','十六','十七','十八','十九','二十',
+  '廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];
+const LUNAR_MONTHS = ['','正','二','三','四','五','六','七','八','九','十','十一','十二'];
+const PHASE_NAMES = [
+  {max:2,  icon:'🌑', name:'朔 (新月)'},
+  {max:45, icon:'🌒', name:'眉月'},
+  {max:90, icon:'🌓', name:'上弦月'},
+  {max:135,icon:'🌔', name:'盈凸月'},
+  {max:180,icon:'🌕', name:'望 (滿月)'},
+  {max:225,icon:'🌖', name:'虧凸月'},
+  {max:270,icon:'🌗', name:'下弦月'},
+  {max:315,icon:'🌘', name:'殘月'},
+  {max:360,icon:'🌑', name:'朔前'},
+];
+
+const OFFICER_TYPE = {
+  '建':'中','除':'吉','滿':'吉','平':'中','定':'吉','執':'中',
+  '破':'凶','危':'凶','成':'吉','收':'吉','開':'吉','閉':'中'
+};
+const OFFICER_DESC = {
+  '建':'萬物始建，宜出行上任，忌婚嫁開倉',
+  '除':'掃除舊穢，宜沐浴清潔，忌嫁娶安床',
+  '滿':'諸事豐滿，宜嫁娶祈福，忌安葬求醫',
+  '平':'諸事平和，宜修造動土，忌嫁娶出行',
+  '定':'事事安定，宜嫁娶祭祀，忌出行上任',
+  '執':'執掌收藏，宜祭祀捕捉，忌嫁娶入宅',
+  '破':'諸事破敗，宜破屋壞垣，忌婚嫁開市',
+  '危':'諸事危險，宜安床修飾，忌嫁娶出行',
+  '成':'諸事成就，宜嫁娶開市，忌安葬動土',
+  '收':'萬物收斂，宜祭祀嫁娶，忌開倉出財',
+  '開':'萬象開通，宜開市交易，忌安葬動土',
+  '閉':'萬物閉藏，宜祭祀安葬，忌開市出行',
+};
+const STEMS = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const BRANCHES = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const ANIMALS = ['鼠','牛','虎','兔','龍','蛇','馬','羊','猴','雞','狗','豬'];
+const DIR_POS = {
+  '東':   {top:'50%', left:'88%'},
+  '西':   {top:'50%', left:'12%'},
+  '南':   {top:'88%', left:'50%'},
+  '北':   {top:'12%', left:'50%'},
+  '東南': {top:'78%', left:'80%'},
+  '東北': {top:'22%', left:'80%'},
+  '西南': {top:'78%', left:'20%'},
+  '西北': {top:'22%', left:'20%'},
+};
+const SOLAR_TERMS_INFO = {
+  '春分':'晝夜等長，萬象更新','清明':'萬物清潔明淨','穀雨':'雨生百穀',
+  '立夏':'夏季開始','小滿':'麥類等夏熟作物顆粒開始飽滿','芒種':'有芒作物開始播種',
+  '夏至':'晝最長夜最短','小暑':'天氣開始炎熱','大暑':'一年中最熱時期',
+  '立秋':'秋季開始','處暑':'暑氣消退','白露':'地面水氣凝露',
+  '秋分':'晝夜等長','寒露':'露水已寒','霜降':'天氣漸冷開始有霜',
+  '立冬':'冬季開始','小雪':'開始降雪','大雪':'大量降雪',
+  '冬至':'晝最短夜最長','小寒':'氣候開始寒冷','大寒':'一年中最冷時期',
+  '立春':'春季開始','雨水':'降雨開始','驚蟄':'蟄蟲驚醒',
+};
+
+// ── State ──────────────────────────────────
+let currentDate = new Date();
+let calendarCache = {};
+
+// ── Date helpers ───────────────────────────
+function toDateStr(d) {
+  return d.getFullYear() + '-' +
+    String(d.getMonth()+1).padStart(2,'0') + '-' +
+    String(d.getDate()).padStart(2,'0');
+}
+function parseDate(s) {
+  const [y,m,d] = s.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+function addDays(d, n) {
+  const r = new Date(d);
+  r.setDate(r.getDate()+n);
+  return r;
+}
+
+// ── Moon phase ─────────────────────────────
+function getMoonPhaseInfo(elongation) {
+  const e = ((elongation % 360) + 360) % 360;
+  for (const p of PHASE_NAMES) {
+    if (e < p.max || p.max === 360) return {...p, elongation: e};
+  }
+  return PHASE_NAMES[PHASE_NAMES.length-1];
+}
+
+// ── Pillar display ─────────────────────────
+function stemClass(idx) {
+  // 陽干: 甲丙戊庚壬 (偶數idx)
+  return (idx % 2 === 0) ? 'yang' : 'yin';
+}
+function pillarHTML(label, gz, showAnimal) {
+  const stemIdx = STEMS.indexOf(gz[0]);
+  const branchIdx = BRANCHES.indexOf(gz[1]);
+  const animal = (showAnimal && branchIdx >= 0) ? ANIMALS[branchIdx] : '';
+  return `<div class="pillar">
+    <div class="pillar-label">${label}</div>
+    <div class="pillar-gz">
+      <span class="pillar-stem">${gz[0]||'?'}</span><span class="pillar-branch">${gz[1]||'?'}</span>
+    </div>
+    ${animal ? `<div class="pillar-animal">${animal}</div>` : ''}
+  </div>`;
+}
+
+// ── Compass ───────────────────────────────
+function compassHTML(dirs) {
+  const map = [
+    {key:'wealth', label:'財', color:'var(--accent)', dir: dirs.wealth},
+    {key:'fortune', label:'福', color:'var(--green)', dir: dirs.fortune},
+    {key:'study', label:'文', color:'var(--blue)', dir: dirs.study},
+    {key:'love', label:'喜', color:'#e066aa', dir: dirs.love},
+  ];
+  let dots = '';
+  for (const m of map) {
+    const pos = DIR_POS[m.dir] || {top:'50%',left:'50%'};
+    dots += `<div class="dir-dot ${m.key}" style="top:${pos.top};left:${pos.left};background:${m.color}">${m.label}</div>`;
+  }
+  let legend = map.map(m =>
+    `<div class="dir-legend-item"><div class="dir-legend-dot" style="background:${m.color}"></div>${m.label}神 ${m.dir}</div>`
+  ).join('');
+  return `<div class="compass">
+    <div class="compass-ring">
+      <div class="compass-dir north">北</div>
+      <div class="compass-dir south">南</div>
+      <div class="compass-dir east">東</div>
+      <div class="compass-dir west">西</div>
+      <div class="compass-dir ne">東北</div>
+      <div class="compass-dir nw">西北</div>
+      <div class="compass-dir se">東南</div>
+      <div class="compass-dir sw">西南</div>
+      ${dots}
+    </div>
+  </div>
+  <div class="dir-legend">${legend}</div>`;
+}
+
+// ── Mini Calendar ─────────────────────────
+function miniCalHTML(year, month, selectedDate, data) {
+  const firstDay = new Date(year, month-1, 1).getDay();
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const prevDays = new Date(year, month-1, 0).getDate();
+  const todayStr = toDateStr(new Date());
+  const selStr = toDateStr(selectedDate);
+  const weekdays = ['日','一','二','三','四','五','六'];
+  let header = weekdays.map(d=>`<div>${d}</div>`).join('');
+  let cells = '';
+  let totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+  for (let i = 0; i < totalCells; i++) {
+    let day, dateStr, cls = 'mc-day', lunarTxt = '';
+    if (i < firstDay) {
+      day = prevDays - firstDay + i + 1;
+      dateStr = `${year}-${String(month-1||12).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      cls += ' other-month';
+    } else if (i < firstDay + daysInMonth) {
+      day = i - firstDay + 1;
+      const m = String(month).padStart(2,'0');
+      const d2 = String(day).padStart(2,'0');
+      dateStr = `${year}-${m}-${d2}`;
+      if (dateStr === todayStr) cls += ' today';
+      if (dateStr === selStr) cls += ' selected';
+      // Lunar day from cache
+      if (calendarCache[dateStr]) {
+        const ld = calendarCache[dateStr].lunar;
+        if (ld && ld.Day) {
+          if (ld.Day === 1) {
+            lunarTxt = (ld.IsLeap?'閏':'') + LUNAR_MONTHS[ld.Month] + '月';
+          } else {
+            lunarTxt = LUNAR_NUMS[ld.Day] || '';
+          }
+        }
+      }
+    } else {
+      day = i - firstDay - daysInMonth + 1;
+      dateStr = `${year}-${String(month+1>12?1:month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      cls += ' other-month';
+    }
+    cells += `<div class="${cls}" data-date="${dateStr}" onclick="selectDate('${dateStr}')">
+      <span>${day}</span>
+      ${lunarTxt ? `<span class="mc-lunar">${lunarTxt}</span>` : ''}
+    </div>`;
+  }
+  return `<div class="mini-cal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <button class="btn btn-today btn-nav" onclick="shiftMonth(-1)">&#8249;</button>
+      <span style="font-size:.9rem;color:var(--text)">${year} 年 ${month} 月</span>
+      <button class="btn btn-today btn-nav" onclick="shiftMonth(1)">&#8250;</button>
+    </div>
+    <div class="mini-cal-header">${header}</div>
+    <div class="mini-cal-days">${cells}</div>
+  </div>`;
+}
+
+// ── Render ─────────────────────────────────
+function renderData(d, data) {
+  const wd = WEEKDAYS[new Date(d + 'T00:00:00').getDay()];
+  const lunar = data.lunar || {};
+  const pillars = data.pillars || {};
+  const st = data.solar_term || {};
+  const dirs = data.directions || {};
+  const shensha = data.shen_sha || [];
+  const mansion = data.mansion || {};
+  const dailyDeity = data.daily_deity || {};
+  const fetalGod = data.fetal_god || {};
+  const clashSha = data.clash_sha || {};
+
+  // Lunar date display
+  const lunarMonthStr = (lunar.IsLeap ? '閏' : '') + LUNAR_MONTHS[lunar.Month] + '月';
+  const lunarDayStr = LUNAR_NUMS[lunar.Day] || lunar.Day;
+
+  // Four pillars ganzhi strings
+  function gzStr(p) {
+    if (!p) return '??';
+    if (typeof p === 'string') return p;
+    const s = STEMS[p.StemIndex];
+    const b = BRANCHES[p.BranchIndex];
+    return (s||'?') + (b||'?');
+  }
+  const yearGZ = gzStr(pillars.Year || pillars.year);
+  const monthGZ = gzStr(pillars.Month || pillars.month);
+  const dayGZ = gzStr(pillars.Day || pillars.day);
+  const hourGZ = gzStr(pillars.Hour || pillars.hour);
+
+  // Year pillar animal
+  let yearAnimal = '';
+  if (pillars.Year && ANIMALS[pillars.Year.BranchIndex]) yearAnimal = ANIMALS[pillars.Year.BranchIndex];
+
+  // Moon phase
+  const solarLon = st.Longitude || 0;
+  const moonLon = data.moon_longitude || 0;
+  const elongation = data.moon_elongation !== undefined ? data.moon_elongation : ((moonLon - solarLon + 360) % 360);
+  const moonInfo = getMoonPhaseInfo(elongation);
+  const phasePercent = (elongation / 360 * 100).toFixed(1);
+
+  // Officer
+  const officer = data.twelve_officer || '';
+  const offType = OFFICER_TYPE[officer] || '中';
+  const offDesc = OFFICER_DESC[officer] || '';
+
+  // Solar term info
+  const stDesc = SOLAR_TERMS_INFO[st.Name] || '';
+  const stIdx = st.Index !== undefined ? st.Index + 1 : '?';
+
+  // Holiday
+  const hol = data.holiday_info || {};
+  const chinaHol = data.china_holiday_info || {};
+  const lunarFestivals = data.lunar_festivals || [];
+
+  // Year label
+  const yearLabel = data.taoist ? data.taoist.replace('道曆 ','').replace(' 年','') + ' 道曆' : '';
+
+  const calYear = currentDate.getFullYear();
+  const calMonth = currentDate.getMonth()+1;
+
+  const html = `
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-left">
+    <div class="hero-gregorian">${d.replace(/-/g,' / ')}</div>
+    <div class="hero-weekday">星期${wd}
+      ${hol.is_holiday && hol.name ? `<span class="holiday-badge">${hol.name}</span>` : ''}
+    </div>
+    <div class="hero-lunar" style="margin-top:12px">
+      <div><span class="label">農曆</span> ${lunar.Year || ''}年 ${lunarMonthStr} ${lunarDayStr}</div>
+      <div style="margin-top:4px"><span class="label">年份</span> ${yearGZ}年 · ${yearAnimal}年</div>
+      <div style="margin-top:4px;display:flex;gap:16px;flex-wrap:wrap">
+        <span>${data.buddhist || ''}</span>
+        <span>${data.taoist || ''}</span>
+      </div>
+      ${lunarFestivals.length > 0 ? `
+      <div style="margin-top:10px">
+        <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:6px">📅 本日節日</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${lunarFestivals.map(f => `
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;display:flex;align-items:center;gap:6px">
+              <span style="font-size:.85rem;font-weight:700;color:${f.Type==='道教'?'var(--accent)':f.Type==='佛教'?'var(--purple)':'var(--teal)'}">${f.Name}</span>
+              <span style="font-size:.65rem;color:var(--text-dim);padding:1px 6px;background:var(--bg);border-radius:10px">${f.Type}</span>
+            </div>
+          `).join('')}
+        </div>
+        ${lunarFestivals.length === 1 ? `<div style="font-size:.75rem;color:var(--text-dim);margin-top:6px;line-height:1.5">${lunarFestivals[0].Description}</div>` : ''}
+      </div>` : ''}
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="lunar-day-num">${lunarDayStr}</div>
+    <div class="lunar-month-label">${lunarMonthStr}</div>
+    ${lunar.Year ? `<div style="font-size:.75rem;color:var(--text-dim);margin-top:4px">${lunar.Year} 年</div>` : ''}
+  </div>
+</div>
+
+<!-- Grid -->
+<div class="grid">
+<div class="card">
+  <div class="card-title">月曆</div>
+  ${miniCalHTML(calYear, calMonth, currentDate, {})}
+</div>
+
+<!-- 假期資訊 -->
+
+<!-- 四柱八字 -->
+<div class="card">
+  <div class="card-title">四柱八字</div>
+  <div class="pillars">
+    ${pillarHTML('年柱', yearGZ, true)}
+    ${pillarHTML('月柱', monthGZ, false)}
+    ${pillarHTML('日柱', dayGZ, false)}
+    ${pillarHTML('時柱', hourGZ, false)}
+  </div>
+  <div style="margin-top:10px">
+    <div class="info-row">
+      <span class="info-label">年干支</span>
+      <span class="info-value accent">${yearGZ} · ${yearAnimal}年</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">月干支</span>
+      <span class="info-value">${monthGZ}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">日干支</span>
+      <span class="info-value">${dayGZ}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">時干支 (子時起)</span>
+      <span class="info-value">${hourGZ}</span>
+    </div>
+  </div>
+</div>
+
+<!-- 節氣 + 天文數據 -->
+<div class="card">
+  <div class="card-title">節氣 · 天文精算</div>
+  <div class="solar-term-badge">
+    <div>
+      <div class="solar-term-name">${st.Name || '─'}</div>
+      <div class="solar-term-lon">☀ 太陽黃經 ${typeof solarLon === 'number' ? solarLon.toFixed(4)+'°' : '─'}</div>
+    </div>
+    <span class="solar-term-idx">第 ${stIdx} 節氣</span>
+  </div>
+  ${stDesc ? `<div style="font-size:.78rem;color:var(--text-dim);margin-bottom:10px;padding:0 2px">${stDesc}</div>` : ''}
+  <div class="info-row">
+    <span class="info-label">儒略日 (JD)</span>
+    <span class="info-value mono">${data.julian_day ? data.julian_day.toFixed(5) : '─'}</span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">Delta-T (TT−UT)</span>
+    <span class="info-value mono">${data.delta_t ? data.delta_t.toFixed(3) + ' 秒' : '─'}</span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">太陽黃經</span>
+    <span class="info-value mono">${typeof solarLon === 'number' ? solarLon.toFixed(6)+'°' : '─'}</span>
+  </div>
+  ${moonLon ? `<div class="info-row">
+    <span class="info-label">月球黃經</span>
+    <span class="info-value mono">${moonLon.toFixed(6)}°</span>
+  </div>` : ''}
+  ${elongation ? `<div class="info-row">
+    <span class="info-label">日月黃經差</span>
+    <span class="info-value mono">${typeof elongation === 'number' ? elongation.toFixed(4)+'°' : '─'}</span>
+  </div>` : ''}
+</div>
+
+<!-- 月相 -->
+<div class="card">
+  <div class="card-title">月相</div>
+  <div class="moon-display">
+    <div class="moon-icon">${moonInfo.icon}</div>
+    <div class="moon-info">
+      <div class="moon-phase-name">${moonInfo.name}</div>
+      <div class="moon-phase-bar">
+        <div class="moon-phase-fill" style="width:${phasePercent}%"></div>
+      </div>
+      <div class="moon-elongation">日月角距 ${typeof elongation === 'number' ? elongation.toFixed(1)+'°' : '─'} ／ 月亮盈虧 ${phasePercent}%</div>
+    </div>
+  </div>
+  <div style="margin-top:8px">
+    <div class="info-row">
+      <span class="info-label">農曆</span>
+      <span class="info-value accent">${lunarMonthStr} ${lunarDayStr}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">閏月</span>
+      <span class="info-value">${lunar.IsLeap ? '是（閏月）' : '否'}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">農曆年</span>
+      <span class="info-value">${lunar.Year || '─'} 年</span>
+    </div>
+  </div>
+</div>
+
+<!-- 建除十二神 -->
+<div class="card">
+  <div class="card-title">建除十二神 · 值日星</div>
+  <div style="display:flex;align-items:center;padding:8px 0 12px">
+    <div class="officer-badge officer-${offType}">${officer}</div>
+    <div class="officer-info">
+      <div class="officer-name" style="color:${offType==='吉'?'var(--green)':offType==='凶'?'var(--red)':'#8888cc'}">${officer}日（${offType}）</div>
+      <div class="officer-desc">${offDesc}</div>
+    </div>
+  </div>
+  <div class="info-row">
+    <span class="info-label">今日宜</span>
+    <span class="info-value" style="color:var(--green)">${(data.suitable||[]).join('、') || '─'}</span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">今日忌</span>
+    <span class="info-value" style="color:var(--red)">${(data.avoidable||[]).join('、') || '─'}</span>
+  </div>
+</div>
+
+<!-- 宜忌活動 -->
+<div class="card">
+  <div class="card-title">黃曆宜忌</div>
+  <div style="margin-bottom:8px">
+    <div style="font-size:.75rem;color:var(--green);margin-bottom:6px">▲ 宜</div>
+    <div class="tags">${(data.suitable||[]).map(s=>`<span class="tag tag-suitable">${s}</span>`).join('') || '<span style="color:var(--text-dim);font-size:.8rem">無</span>'}</div>
+  </div>
+  <div>
+    <div style="font-size:.75rem;color:var(--red);margin-bottom:6px">▼ 忌</div>
+    <div class="tags">${(data.avoidable||[]).map(s=>`<span class="tag tag-avoidable">${s}</span>`).join('') || '<span style="color:var(--text-dim);font-size:.8rem">無</span>'}</div>
+  </div>
+</div>
+
+<!-- 神煞 -->
+<div class="card">
+  <div class="card-title">神煞星曜</div>
+  <div class="tags" style="margin-bottom:10px">
+    ${shensha.map(s=>`<span class="tag tag-shensha" title="${s.Description}">${s.Name}</span>`).join('')}
+  </div>
+  ${shensha.map(s=>`
+    <div class="info-row">
+      <span class="info-label">${s.Name}</span>
+      <span class="info-value">${s.Description}</span>
+    </div>`).join('')}
+  ${shensha.length === 0 ? '<div style="color:var(--text-dim);font-size:.85rem">無特殊神煞</div>' : ''}
+</div>
+
+<!-- 吉神方位 -->
+
+<!-- 二十八星宿 -->
+<div class="card">
+  <div class="card-title">二十八星宿</div>
+  <div style="display:flex;align-items:center;padding:8px 0">
+    <div style="font-size:2.5rem;font-weight:900;color:var(--accent);margin-right:14px">${mansion.Name}</div>
+    <div style="flex:1">
+      <div style="font-size:1.1rem;font-weight:700">${mansion.FullName}</div>
+      <div style="font-size:.8rem;color:var(--text-dim);margin-top:3px">${mansion.Palace} · 五行${mansion.Element}</div>
+    </div>
+  </div>
+  <div class="info-row">
+    <span class="info-label">星宿</span>
+    <span class="info-value accent">${mansion.Name}${mansion.Element}${mansion.Animal}</span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">宮位</span>
+    <span class="info-value">${mansion.Palace}</span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">五行</span>
+    <span class="info-value">${mansion.Element}</span>
+  </div>
+</div>
+
+<!-- 值神 -->
+<div class="card">
+  <div class="card-title">值神</div>
+  <div style="display:flex;align-items:center;padding:8px 0">
+    <div style="font-size:2.2rem;font-weight:900;color:${dailyDeity.Type==='吉'?'var(--green)':dailyDeity.Type==='凶'?'var(--red)':'#8888cc'};margin-right:14px">${dailyDeity.Name}</div>
+    <div style="flex:1">
+      <div style="font-size:1rem;font-weight:700;color:${dailyDeity.Type==='吉'?'var(--green)':dailyDeity.Type==='凶'?'var(--red)':'#8888cc'}">${dailyDeity.Name}（${dailyDeity.Type}）</div>
+      <div style="font-size:.78rem;color:var(--text-dim);margin-top:3px;line-height:1.5">${dailyDeity.Desc}</div>
+    </div>
+  </div>
+</div>
+
+<!-- 胎神 -->
+<div class="card">
+  <div class="card-title">胎神</div>
+  <div class="info-row">
+    <span class="info-label">胎神位置</span>
+    <span class="info-value accent">${fetalGod.Position}</span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">說明</span>
+    <span class="info-value">${fetalGod.Description}</span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">禁忌</span>
+    <span class="info-value" style="color:var(--red)">${fetalGod.Taboo}</span>
+  </div>
+  <div style="margin-top:10px;padding:10px;background:var(--surface2);border-radius:8px;font-size:.75rem;color:var(--text-dim);line-height:1.6">
+    <div>胎神占方，孕婦當日須避開此方位</div>
+    <div style="margin-top:4px">胎神信仰源自中國傳統生育文化</div>
+  </div>
+</div>
+
+<!-- 沖煞 -->
+<div class="card">
+  <div class="card-title">沖煞</div>
+  <div style="display:flex;gap:10px;margin-bottom:10px">
+    <div style="flex:1;background:${clashSha.ClashZodiac?'#301818':'var(--surface2)'};border:1px solid ${clashSha.ClashZodiac?'#502828':'var(--border)'};border-radius:8px;padding:10px;text-align:center">
+      <div style="font-size:.7rem;color:var(--text-dim);margin-bottom:4px">相沖生肖</div>
+      <div style="font-size:1.3rem;font-weight:800;color:${clashSha.ClashZodiac?'var(--red)':'var(--text)'};letter-spacing:.1em">${clashSha.ClashZodiac || '─'}</div>
+    </div>
+    <div style="flex:1;background:${clashSha.ShaDirection?'#301818':'var(--surface2)'};border:1px solid ${clashSha.ShaDirection?'#502828':'var(--border)'};border-radius:8px;padding:10px;text-align:center">
+      <div style="font-size:.7rem;color:var(--text-dim);margin-bottom:4px">煞方</div>
+      <div style="font-size:1.3rem;font-weight:800;color:${clashSha.ShaDirection?'var(--red)':'var(--text)'};letter-spacing:.1em">${clashSha.ShaDirection || '─'}</div>
+    </div>
+  </div>
+  <div class="info-row">
+    <span class="info-label">沖地支</span>
+    <span class="info-value">${clashSha.ClashBranch || '─'}</span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">煞說明</span>
+    <span class="info-value">${clashSha.ShaDesc || '─'}</span>
+  </div>
+  <div style="margin-top:10px;padding:10px;background:#301818;border:1px solid #502828;border-radius:8px;font-size:.75rem;color:var(--red);line-height:1.6">
+    <div>⚠ 沖煞之日，對應生肖者宜謹慎行事</div>
+    <div style="margin-top:4px;color:var(--text-dim)">煞方諸事不宜，避免往該方位進行重要活動</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">吉神方位</div>
+  ${compassHTML(dirs)}
+</div>
+
+<!-- 農曆宗教節日 -->
+<div class="card">
+  <div class="card-title">農曆宗教節日</div>
+  ${lunarFestivals.length > 0 ? `
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${lunarFestivals.map(f => `
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span style="font-size:1rem;font-weight:800;color:${f.Type==='道教'?'var(--accent)':f.Type==='佛教'?'var(--purple)':'var(--teal)'}">${f.Name}</span>
+            <span style="font-size:.65rem;color:var(--text-dim);padding:2px 8px;background:var(--bg);border-radius:10px;border:1px solid var(--border)">${f.Type}</span>
+          </div>
+          <div style="font-size:.78rem;color:var(--text-dim);line-height:1.5">${f.Description}</div>
+        </div>
+      `).join('')}
+    </div>
+  ` : `<div style="color:var(--text-dim);font-size:.85rem;text-align:center;padding:20px">本日無特殊農曆節日</div>`}
+</div>
+
+<!-- 宗教曆法 -->
+<div class="card">
+  <div class="card-title">宗教曆法 · 紀年</div>
+  <div class="info-row">
+    <span class="info-label">佛曆 (Buddhist Era)</span>
+    <span class="info-value accent">${data.buddhist || '─'}</span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">道曆 (Taoist Era)</span>
+    <span class="info-value accent">${data.taoist || '─'}</span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">民國紀年</span>
+    <span class="info-value">${data.gregorian_date ? ('民國 ' + (parseInt(data.gregorian_date.slice(0,4)) - 1911) + ' 年') : '─'}</span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">干支紀年</span>
+    <span class="info-value">${yearGZ}年</span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">生肖</span>
+    <span class="info-value">${yearAnimal || '─'}</span>
+  </div>
+</div>
+
+<!-- 精密天文數值 -->
+<div class="card">
+  <div class="card-title">精密天文數值</div>
+  <div class="info-row">
+    <span class="info-label">儒略日 (JD)</span>
+    <span class="info-value mono">${data.julian_day ? data.julian_day.toFixed(5) : '─'}</span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">儒略曆書日 (JDE)</span>
+    <span class="info-value mono">${data.julian_day && data.delta_t ? (data.julian_day + data.delta_t/86400).toFixed(5) : '─'}</span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">Delta-T (秒)</span>
+    <span class="info-value mono">${data.delta_t ? data.delta_t.toFixed(4) : '─'}</span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">太陽視黃經</span>
+    <span class="info-value mono">${typeof solarLon === 'number' ? solarLon.toFixed(6) + '°' : '─'}</span>
+  </div>
+  ${moonLon ? `<div class="info-row">
+    <span class="info-label">月球黃經</span>
+    <span class="info-value mono">${moonLon.toFixed(6)}°</span>
+  </div>` : ''}
+  ${data.moon_elongation !== undefined ? `<div class="info-row">
+    <span class="info-label">日月黃經差 (月相角)</span>
+    <span class="info-value mono">${data.moon_elongation.toFixed(4)}°</span>
+  </div>` : ''}
+  <div class="info-row">
+    <span class="info-label">當前節氣黃經</span>
+    <span class="info-value mono">${st.Index !== undefined ? (st.Index * 15) + '°' : '─'}</span>
+  </div>
+</div>
+
+<!-- Mini Calendar -->
+<div class="card">
+  <div class="card-title">台灣行政假期</div>
+  <div class="info-row">
+    <span class="info-label">是否假日</span>
+    <span class="info-value" style="color:${hol.is_holiday?'var(--green)':'var(--text-dim)'}">
+      ${hol.is_holiday ? '✓ 是' : '✗ 否（工作日）'}
+    </span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">假期名稱</span>
+    <span class="info-value">${hol.name || '─'}</span>
+  </div>
+  <div style="margin-top:10px;padding:10px;background:var(--surface2);border-radius:8px;font-size:.78rem;color:var(--text-dim);line-height:1.7">
+    <div>資料來源：中華民國政府公告</div>
+    <div>目前載入：2024 年樣本資料</div>
+    <div style="margin-top:4px;color:var(--gold-dim)">⚠ 完整假期資料擴充中</div>
+  </div>
+</div>
+<!-- 大陸行政假期 -->
+<div class="card">
+  <div class="card-title">大陸行政假期</div>
+  <div class="info-row">
+    <span class="info-label">是否假日</span>
+    <span class="info-value" style="color:${chinaHol.is_holiday?'var(--green)':'var(--text-dim)'}">
+      ${chinaHol.is_holiday ? '✓ 是' : '✗ 否（工作日）'}
+    </span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">假期名稱</span>
+    <span class="info-value">${chinaHol.name || '─'}</span>
+  </div>
+  <div style="margin-top:10px;padding:10px;background:var(--surface2);border-radius:8px;font-size:.78rem;color:var(--text-dim);line-height:1.7">
+    <div>資料來源：中華人民共和國國務院公告</div>
+    <div>目前載入：2024-2026 年法定假日</div>
+    <div style="margin-top:4px">包含：元旦、春節、清明、勞動節、端午、中秋、國慶</div>
+  </div>
+</div>
+
+
+</div><!-- end grid -->
+
+<div class="footer">
+  <div>算曆之巔 Lunar Zenith · 天文級精度曆法計算引擎</div>
+  <div>資料來源：VSOP87 (太陽) · ELP2000-82 (月球) · 台灣曆法標準</div>
+  <div style="margin-top:4px;color:var(--gold-dim)">REST API: GET /v1/calendar?date=YYYY-MM-DD · gRPC: :50051</div>
+</div>
+`;
+  return html;
+}
+
+// ── Fetch ──────────────────────────────────
+async function fetchCalendar(dateStr) {
+  const url = '/v1/calendar?date=' + dateStr;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+// ── Main load ──────────────────────────────
+async function loadDate(dateStr) {
+  $('app').innerHTML = '<div class="loading"><div class="spinner"></div><span>計算中…</span></div>';
+  $('datePicker').value = dateStr;
+  try {
+    let data = calendarCache[dateStr];
+    if (!data) {
+      data = await fetchCalendar(dateStr);
+      calendarCache[dateStr] = data;
+    }
+    currentDate = parseDate(dateStr);
+    $('app').innerHTML = renderData(dateStr, data);
+  } catch(e) {
+    $('app').innerHTML = `<div class="error-msg">載入失敗：${e.message}<br><br>請確認服務是否正在運行</div>`;
+  }
+}
+
+// ── Navigation ─────────────────────────────
+function shiftDay(n) {
+  const d = addDays(currentDate, n);
+  loadDate(toDateStr(d));
+}
+
+function shiftMonth(n) {
+  currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + n, 1);
+  loadDate(toDateStr(currentDate));
+}
+
+function selectDate(dateStr) {
+  loadDate(dateStr);
+}
+
+// ── Init ───────────────────────────────────
+$('queryBtn').onclick = () => loadDate($('datePicker').value || toDateStr(new Date()));
+$('todayBtn').onclick = () => loadDate(toDateStr(new Date()));
+$('prevDay').onclick = () => shiftDay(-1);
+$('nextDay').onclick = () => shiftDay(1);
+$('datePicker').addEventListener('keydown', e => { if (e.key==='Enter') $('queryBtn').click(); });
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.target === $('datePicker')) return;
+  if (e.key === 'ArrowLeft') shiftDay(-1);
+  if (e.key === 'ArrowRight') shiftDay(1);
+  if (e.key === 't' || e.key === 'T') loadDate(toDateStr(new Date()));
+});
+
+// Init with today
+const today = toDateStr(new Date());
+$('datePicker').value = today;
+loadDate(today);
+</script>
+</body>
+</html>

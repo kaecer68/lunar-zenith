@@ -1,7 +1,7 @@
 # 🌙 Lunar-Zenith (算曆之巔)
 
 [![Go Version](https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat&logo=go)](https://golang.org)
-[![Version](https://img.shields.io/badge/Version-v0.1.1-blue)](https://github.com/kaecer68/lunar-zenith/releases/tag/v0.1.1)
+[![Version](https://img.shields.io/badge/Version-v1.4.0-blue)](https://github.com/kaecer68/lunar-zenith/releases/tag/v1.4.0)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Precision](https://img.shields.io/badge/Precision-Astronomical-blueviolet)](#)
 
@@ -16,8 +16,10 @@
 - **⛩️ 文化與宗教模型**: 
   - **核心干支**: 完整支持年月日時四柱、五虎遁、五鼠遁及立春精確換年。
   - **神煞系統**: 內建建除十二神、年驛馬、年桃花等常用神煞。
-  - **宗教支持**: 自動換算佛曆 (Buddhist) 與道曆 (Taoist) 年份。
+  - **擴充神煞**: 二十八星宿、值神、胎神、沖煞 (v1.4.0 新增)。
+  - **宗教支持**: 自動換算佛曆 (Buddhist) 與道曆 (Taoist) 年份，內建台灣重要農曆宗教節日 (玉皇大帝、觀世音、媽祖等)。
 - **⚡ 高性能架構**: 全無狀態 (Stateless) 設計，支持 gRPC 與 REST 雙棧通訊，具備 Zero-Panic 的健壯性。
+- **🌐 網頁查詢介面**: 內建現代化 Web UI，無需客戶端即可通過瀏覽器查詢完整曆法資訊。
 
 ---
 
@@ -45,13 +47,20 @@ go mod tidy
 go build -o bin/server ./cmd/server/main.go
 ```
 
-### 2. 啟動 REST API
+### 2. 啟動服務
 ```bash
 ./bin/server
 ```
 預設服務將開啟於 `http://localhost:8080`。
 
-### 3. 調用示例
+### 3. 使用網頁介面
+打開瀏覽器訪問 `http://localhost:8080`，即可使用圖形化查詢介面：
+- 選擇日期查看完整曆法資訊
+- 查看農曆、干支、節氣、宜忌、吉神方位
+- 使用方向鍵快速切換日期
+- 按 T 鍵快速回到今天
+
+### 4. 調用 API 示例
 獲取指定日期的完整曆法大禮包：
 ```bash
 curl "http://localhost:8080/v1/calendar?date=2024-02-10"

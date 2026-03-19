@@ -56,7 +56,29 @@ func (s *GrpcServer) GetCalendar(ctx context.Context, req *lunarv1.GetCalendarRe
 	officer := zodiac.GetTwelveOfficer(pillars.Month.BranchIndex, pillars.Day.BranchIndex)
 	ss := zodiac.GetYearShenSha(pillars.Year.BranchIndex)
 
-	// 8. 構建響應
+	// 8. 黃曆宜忌 (v1.3.0 新增)
+	suitable, avoidable, directions := CalculateAlmanac(officer, pillars.Day.StemIndex)
+
+	// 9. 擴充神煞 (v1.4.0 新增)
+	solarMonth := zodiac.GetSolarMonth(st.Longitude)
+	mansion := zodiac.GetTwentyEightMansion(solarMonth, pillars.Day.StemIndex, pillars.Day.BranchIndex)
+	dailyDeity := zodiac.GetDailyDeity(pillars.Day.BranchIndex)
+	fetalGod := zodiac.GetFetalGod(pillars.Day.StemIndex)
+	clashSha := zodiac.GetClashSha(pillars.Day.BranchIndex)
+
+	// 10. 農曆節日 (v1.4.0 新增)
+	var lunarFestivals []*lunarv1.LunarFestival
+	lunarFests := zodiac.GetLunarFestival(lunar.Month, lunar.Day)
+	for _, f := range lunarFests {
+		lunarFestivals = append(lunarFestivals, &lunarv1.LunarFestival{
+			Name:        f.Name,
+			Type:        f.Type,
+			Description: f.Description,
+			Priority:    int32(f.Priority),
+		})
+	}
+
+	// 11. 構建響應
 	res := &lunarv1.GetCalendarResponse{
 		GregorianDate: t.Format("2006-01-02"),
 		JulianDay:     pt.JD,
@@ -76,16 +98,50 @@ func (s *GrpcServer) GetCalendar(ctx context.Context, req *lunarv1.GetCalendarRe
 			Day:   zodiac.GetStemBranchName(pillars.Day.StemIndex, pillars.Day.BranchIndex),
 			Hour:  zodiac.GetStemBranchName(pillars.Hour.StemIndex, pillars.Hour.BranchIndex),
 		},
-		// 確保 SolarTerm 正確填充（這是關鍵需求）
+		// 確保 SolarTerm 正確填充
 		SolarTerm: &lunarv1.SolarTerm{
 			Index:     int32(st.Index),
 			Name:      st.Name,
 			Longitude: st.Longitude,
 		},
 		TwelveOfficer: officer,
+		Suitable:      suitable,
+		Avoidable:     avoidable,
+		Directions: &lunarv1.Directions{
+			Wealth:  directions.Wealth,
+			Fortune: directions.Fortune,
+			Study:   directions.Study,
+			Love:    directions.Love,
+		},
+		// v1.4.0 擴充神煞
+		Mansion: &lunarv1.Mansion{
+			Name:     mansion.Name,
+			Animal:   mansion.Animal,
+			FullName: mansion.FullName,
+			Palace:   mansion.Palace,
+			Element:  mansion.Element,
+			Index:    int32(mansion.Index),
+		},
+		DailyDeity: &lunarv1.DailyDeity{
+			Name: dailyDeity.Name,
+			Type: dailyDeity.Type,
+			Desc: dailyDeity.Desc,
+		},
+		FetalGod: &lunarv1.FetalGod{
+			Position:    fetalGod.Position,
+			Description: fetalGod.Description,
+			Taboo:       fetalGod.Taboo,
+		},
+		ClashSha: &lunarv1.ClashSha{
+			ClashZodiac:  clashSha.ClashZodiac,
+			ClashBranch:  clashSha.ClashBranch,
+			ShaDirection: clashSha.ShaDirection,
+			ShaDesc:      clashSha.ShaDesc,
+		},
+		LunarFestivals: lunarFestivals,
 	}
 
-	// 9. 添加神煞
+	// 12. 添加神煞
 	for _, s := range ss {
 		res.ShenSha = append(res.ShenSha, &lunarv1.ShenSha{
 			Name:        s.Name,
@@ -93,10 +149,19 @@ func (s *GrpcServer) GetCalendar(ctx context.Context, req *lunarv1.GetCalendarRe
 		})
 	}
 
-	// 10. 假期信息
+	// 13. 假期信息
 	if s.Aggregator.HolidaySvc != nil {
 		isHol, name := s.Aggregator.HolidaySvc.IsHoliday(t.Format("20060102"))
 		res.HolidayInfo = &lunarv1.HolidayInfo{
+			IsHoliday: isHol,
+			Name:      name,
+		}
+	}
+
+	// 14. 大陸假期信息 (v1.4.0 新增)
+	if s.Aggregator.ChinaHolidaySvc != nil {
+		isHol, name := s.Aggregator.ChinaHolidaySvc.IsHoliday(t.Format("20060102"))
+		res.ChinaHolidayInfo = &lunarv1.HolidayInfo{
 			IsHoliday: isHol,
 			Name:      name,
 		}
