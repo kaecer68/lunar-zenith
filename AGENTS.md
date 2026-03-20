@@ -43,6 +43,16 @@ go test -v -run TestNewYearSexagenary ./pkg/zodiac/
 go build -ldflags="-s -w" -o bin/server ./cmd/server/main.go
 ```
 
+### Runtime Port Contract (必讀)
+
+- **單一真相**：所有 REST/gRPC 埠號以 `contracts/runtime/ports.env` 為準。
+- **必跑腳本**：
+  - `make sync-contracts` － 從契約生成 `.env.ports`（禁止手改）。
+  - `make verify-contracts` － PR/CI 強制執行，未同步將 fail。
+- **本地清理**：埠號被佔用時執行 `make dev-clean` 清掉契約定義的 port listener。
+- **禁止手改 `.env.ports`**：此檔僅能由 `scripts/sync-contracts.sh` 生成。
+
+
 ## CODE STYLE
 
 ### Formatting

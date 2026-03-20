@@ -68,6 +68,8 @@ make verify-contracts
 make dev-clean
 ```
 
+> PR/CI pipeline 會固定執行 `make verify-contracts` 作為 gate，任何未同步 `.env.ports` 的變更都會被拒絕；此檔案僅能由 `scripts/sync-contracts.sh` 生成，請勿手動修改。
+
 ### 3. 使用網頁介面
 打開瀏覽器訪問 `http://localhost:8080`，即可使用圖形化查詢介面：
 - 選擇日期查看完整曆法資訊
