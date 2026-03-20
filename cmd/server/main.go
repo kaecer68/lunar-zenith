@@ -13,6 +13,16 @@ import (
 	"google.golang.org/grpc"
 )
 
+func getEnvWithFallback(primary, fallback, defaultValue string) string {
+	if v := os.Getenv(primary); v != "" {
+		return v
+	}
+	if v := os.Getenv(fallback); v != "" {
+		return v
+	}
+	return defaultValue
+}
+
 func main() {
 	// 1. 初始化服務
 	// 台灣假期 - 使用完整假期數據
@@ -52,10 +62,7 @@ func main() {
 
 	// 4. 啟動 gRPC 服務器（在背景 goroutine）
 	go func() {
-		grpcPort := os.Getenv("GRPC_PORT")
-		if grpcPort == "" {
-			grpcPort = "50051"
-		}
+		grpcPort := getEnvWithFallback("LUNAR_GRPC_PORT", "GRPC_PORT", "50051")
 		lis, err := net.Listen("tcp", ":"+grpcPort)
 		if err != nil {
 			log.Fatalf("Failed to listen gRPC: %v", err)
@@ -72,7 +79,7 @@ func main() {
 	}()
 
 	// 5. 啟動 REST HTTP 服務
-	port := "8080"
+	port := getEnvWithFallback("LUNAR_REST_PORT", "REST_PORT", "8080")
 	log.Printf("Lunar-Zenith REST API starts on :%s", port)
 	if err := r.Run(":" + port); err != nil {
 		log.Fatal("Failed to run server: ", err)

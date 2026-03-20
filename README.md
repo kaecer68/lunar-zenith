@@ -49,9 +49,24 @@ go build -o bin/server ./cmd/server/main.go
 
 ### 2. 啟動服務
 ```bash
-./bin/server
+make dev
 ```
 預設服務將開啟於 `http://localhost:8080`。
+
+> `make dev` 會先同步 `contracts/runtime/ports.env` 到本地 `.env.ports`，
+> 再以契約 port 啟動服務（REST/gRPC）。
+
+### 2.1 Port 契約同步工具
+```bash
+# 同步契約 port 到 .env.ports
+make sync-contracts
+
+# 驗證 .env.ports 是否與契約一致（適合 CI）
+make verify-contracts
+
+# 清理契約定義的本服務埠號佔用
+make dev-clean
+```
 
 ### 3. 使用網頁介面
 打開瀏覽器訪問 `http://localhost:8080`，即可使用圖形化查詢介面：
