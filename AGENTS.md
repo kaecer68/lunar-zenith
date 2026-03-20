@@ -1,99 +1,217 @@
 # Lunar-Zenith Project Knowledge Base
 
-**Generated:** 2026-03-18  
-**Commit:** see `git log -1 --oneline`  
-**Branch:** see `git branch --show-current`  
+**Generated:** 2026-03-20  
+**Go Version:** 1.25+  
 **Contract Version:** lunar-zenith v1.4.0
 
 ## OVERVIEW
 
-高精度曆法算曆引擎 (Go 1.25+)。天文級精度節氣/朔望月計算，台灣曆法標準對齊。REST + gRPC 雙棧服務。
+高精度曆法算曆引擎。天文級精度節氣/朔望月計算，台灣曆法標準對齊。REST + gRPC 雙棧服務。
 
 ## STRUCTURE
 
 ```
 lunar-zenith/
-├── cmd/              # 入口：server (REST+gRPC), test_grpc
-├── api/v1/           # Protobuf 生成代碼 (DO NOT EDIT)
-├── pkg/celestial/    # 天體計算：儒略日，Delta-T, 太陽/月球位置
-├── pkg/zodiac/       # 文化曆法：干支，農曆，神煞，宗教曆
-├── internal/service/ # 服務層：API 聚合，gRPC/REST handler
-├── configs/          # 假期數據 JSON
-└── contracts/        # symlink → destiny-contracts (OpenAPI 契約)
+├── cmd/              # Entry points (server, test_grpc)
+├── api/v1/           # Protobuf generated code (DO NOT EDIT)
+├── pkg/celestial/    # Astronomical: JD, Delta-T, solar/lunar positions
+├── pkg/zodiac/       # Cultural calendar: sexagenary, lunar, shensha
+├── internal/service/ # Service layer: aggregation, gRPC/REST handlers
+├── internal/webui/   # Web UI static files
+└── configs/          # Holiday JSON data
 ```
+
+## BUILD COMMANDS
+
+```bash
+# Build server binary
+go build -o bin/server ./cmd/server/main.go
+
+# Run server
+./bin/server        # REST:8080, gRPC:50051 (env: GRPC_PORT)
+
+# Run tests
+go test ./...                    # All tests
+go test ./pkg/celestial/...      # Specific package
+go test -v ./pkg/zodiac/...      # Verbose output
+
+# Run single test
+go test -v -run TestTimeToJD ./pkg/celestial/
+go test -v -run TestNewYearSexagenary ./pkg/zodiac/
+
+# Build with optimizations
+go build -ldflags="-s -w" -o bin/server ./cmd/server/main.go
+```
+
+## CODE STYLE
+
+### Formatting
+- Standard Go formatting (`gofmt`)
+- No line length limit, but keep readable
+- Use tabs for indentation
+
+### Naming Conventions
+
+**Types:** PascalCase, descriptive
+```go
+type PrecisionTime struct { }
+type HolidayService struct { }
+type Sexagenary struct { }
+```
+
+**Functions:**
+- Exported: PascalCase (`NewPrecisionTime`, `GetDaySexagenary`)
+- Unexported: camelCase (none found in this codebase)
+- Constructor pattern: `New{type}()`
+- Getters: `Get{Property}()` or just `{Property}()`
+
+**Variables:**
+- Local: short when obvious (`t`, `jd`, `err`)
+- Constants: CamelCase or PascalCase for exported
+```go
+var HeavenlyStems = []string{"甲", "乙", ...}
+const TypePublicHoliday HolidayType = "holiday"
+```
+
+**Packages:**
+- Match directory name exactly
+- Single word when possible: `celestial`, `zodiac`, `service`
+
+### Imports
+Standard Go import grouping (no blank lines needed in simple cases):
+```go
+import (
+    "math"
+    "time"
+)
+```
+
+External imports:
+```go
+import (
+    "encoding/json"
+    "fmt"
+    "os"
+    
+    "github.com/gin-gonic/gin"
+    lunarv1 "github.com/kaecer68/lunar-zenith/api/v1"
+    "google.golang.org/grpc"
+)
+```
+
+Order: stdlib → external → internal (project imports)
+
+### Error Handling
+
+**Zero-Panic Rule:** Only `cmd/` may use `log.Fatal()`. All other packages return `error`.
+
+**Error wrapping with context:**
+```go
+if err != nil {
+    return fmt.Errorf("failed to read holiday file: %w", err)
+}
+```
+
+**No naked returns:** Always return explicit values.
+
+### Types
+
+**Structs:** Document purpose with comment
+```go
+// PrecisionTime 封裝了天文計算所需的高精度時間結構
+type PrecisionTime struct {
+    UT     time.Time // 民用協調世界時
+    JD     float64   // 儒略日
+    JDE    float64   // 儒略曆元
+    DeltaT float64   // TT - UT 差值（秒）
+}
+```
+
+**Constants for enums:**
+```go
+type HolidayType string
+const (
+    TypePublicHoliday HolidayType = "holiday"
+    TypeWorkday       HolidayType = "workday"
+)
+```
+
+### Testing
+
+**Test file naming:** `*_test.go` in same package
+
+**Test function naming:** `Test{FunctionName}`
+```go
+func TestTimeToJD(t *testing.T) {
+    t1 := time.Date(2000, 1, 1, 12, 0, 0, 0, time.UTC)
+    got := TimeToJD(t1)
+    want := 2451545.0
+    if got != want {
+        t.Errorf("TimeToJD(...) = %f; want %f", got, want)
+    }
+}
+```
+
+**Test patterns:**
+- Table-driven tests for multiple cases
+- Use `t.Errorf()` not `t.Fatalf()` for non-fatal failures
+- Test error cases explicitly
+
+## CONVENTIONS
+
+- **Contract-first:** API changes → update OpenAPI → implement
+- **Stateless:** All services stateless, support horizontal scaling
+- **Zero-Panic:** Only `cmd/` uses `panic`/`log.Fatal`. Return errors.
+- **繁體中文:** All calendar names use Traditional Chinese
+- **Precision:** `float64` for all astronomical calculations (15-16 digits)
+
+## ANTI-PATTERNS
+
+- ❌ Directly edit `api/v1/*.go` (protoc generated)
+- ❌ Add API fields not defined in contract
+- ❌ Access `HolidayService` outside `internal/service`
+- ❌ Use UT directly for solar/lunar calculations (must use JDE)
+- ❌ Ignore Delta-T correction (hours of error on historical dates)
+- ❌ Use `panic()` outside `cmd/`
 
 ## WHERE TO LOOK
 
 | Task | Location | Notes |
 |------|----------|-------|
-| API 契約 | `contracts/openapi/lunar-zenith.yaml` | 先更新契約，再 `make generate` |
-| 啟動入口 | `cmd/server/main.go` | Gin + gRPC + Web UI 並行 |
-| 天文計算 | `pkg/celestial/*.go` | JD 轉換，Delta-T 估算 |
-| 干支/農曆 | `pkg/zodiac/*.go` | 五虎遁，五鼠遁，建除十二神 |
-| 業務邏輯 | `internal/service/*.go` | Aggregator, HolidayService |
-| 網頁介面 | `internal/webui/static/index.html` | 內建 Web UI |
-| 假期數據 | `configs/holidays_2024_sample.json` | 台灣公眾假期 |
-| 神煞系統 | `pkg/zodiac/shensha.go` | 二十八星宿、值神、胎神、沖煞 |
-| 宗教節日 | `pkg/zodiac/festival.go` | 農曆節日清單 |
+| API contract | `contracts/openapi/lunar-zenith.yaml` | Update first, then generate |
+| Server entry | `cmd/server/main.go` | Gin + gRPC + Web UI |
+| Astronomical | `pkg/celestial/*.go` | JD, Delta-T, positions |
+| Calendar logic | `pkg/zodiac/*.go` | Sexagenary, lunar, shensha |
+| Business logic | `internal/service/*.go` | Aggregator, HolidayService |
+| Web UI | `internal/webui/static/` | Built-in web interface |
+| Holiday data | `configs/holidays_*.json` | Taiwan/China holidays |
 
 ## CODE MAP
 
-| Symbol | Type | Location | Role |
-|--------|------|----------|------|
-| `PrecisionTime` | struct | `pkg/celestial/base.go` | 高精度時間封裝 (JD/JDE/DeltaT) |
-| `NewYearSexagenary` | func | `pkg/zodiac/sexagenary.go` | 年干支計算 (基準：西元 4 年甲子) |
-| `GetDaySexagenary` | func | `pkg/zodiac/sexagenary.go` | 日干支計算 (JD 基準) |
-| `Aggregator` | struct | `internal/service/aggregator.go` | 服務聚合器 |
-| `HolidayService` | struct | `internal/service/holiday.go` | 假期載入/查詢 |
-| `WebUI` | package | `internal/webui/*.go` | 網頁查詢介面 |
+| Symbol | File | Role |
+|--------|------|------|
+| `PrecisionTime` | `pkg/celestial/base.go` | High-precision time wrapper |
+| `NewYearSexagenary()` | `pkg/zodiac/sexagenary.go` | Year sexagenary (base year 4 AD) |
+| `GetDaySexagenary()` | `pkg/zodiac/sexagenary.go` | Day sexagenary (JD based) |
+| `Aggregator` | `internal/service/aggregator.go` | Service aggregator |
+| `HolidayService` | `internal/service/holiday.go` | Holiday JSON loader/query |
 
-## CONVENTIONS
-
-- **Contract-first**: API 變更 → 更新 OpenAPI → `make generate` → 實現
-- **Stateless**: 所有服務無狀態，支持水平擴展
-- **Zero-Panic**: `cmd/` 外禁止 `panic()`，錯誤返回 `error`
-- **繁體中文**: 所有曆法名稱使用繁體中文
-
-## ANTI-PATTERNS (THIS PROJECT)
-
-- ❌ 直接修改 `api/v1/*.go` (protoc 生成)
-- ❌ 添加契約未定義的 API 欄位
-- ❌ `internal/service` 外直接訪問 `HolidayService`
-- ❌ 忽略 Delta-T 修正 (天文計算必須使用 JDE)
-
-## UNIQUE STYLES
-
-- **雙時制**: UT (民用時) / TT (曆書時) 並行，Delta-T 橋接
-- **基準校正**: 干支計算使用歷史基準 (西元 4 年甲子，2000-01-01 戊午日)
-- **台灣優先**: 假期/曆法規則遵循中華民國政府公告標準，內建重要宗教節日
-- **網頁優先**: 內建 Web UI，根路徑 `/` 提供圖形化查詢介面
-- **完整神煞**: 二十八星宿、值神、胎神、沖煞、農曆節日 (v1.4.0)
-
-## COMMANDS
+## RUNNING SINGLE TESTS
 
 ```bash
-# 編譯
-go build -o bin/server ./cmd/server/main.go
-
-# 測試
-go test ./...
-
-# 契約生成 (需 Makefile，暫無)
-# openapi-generator generate -i contracts/openapi/lunar-zenith.yaml -g go-server -o api/v1/
-
-# 啟動服務
-./bin/server  # REST:8080, gRPC:50051
+# Pattern: go test -v -run <TestName> <package>
+go test -v -run TestTimeToJD ./pkg/celestial/
+go test -v -run TestNewPrecisionTime ./pkg/celestial/
+go test -v -run TestNewYearSexagenary ./pkg/zodiac/
+go test -v -run TestGetDaySexagenary ./pkg/zodiac/
+go test -v -run TestSolarLongitude ./pkg/celestial/
 ```
-
-## NOTES
-
-- **Leap Month**: 閏月判定待完善 (`pkg/zodiac/lunar_engine.go:59` TODO)
-- **Generated Code**: `api/v1/` 為 protoc 生成，禁止手動修改
-- **Contract Sync**: `contracts/` 為 symlink，需確保 `destiny-contracts` 存在
 
 ## RELATED DOCS
 
-- `contracts/README.md` - 契約層完整文檔
-- `contracts/TASK-BOARD.md` - 跨服務任務看板
-- `contracts/HANDOFF.md` - AI 交接報告模板
-- `PRD.md` - 產品需求文檔
+- `contracts/README.md` - Contract layer documentation
+- `contracts/TASK-BOARD.md` - Cross-service task board
+- `PRD.md` - Product requirements
+- `pkg/celestial/AGENTS.md` - Celestial module guide
+- `pkg/zodiac/AGENTS.md` - Zodiac module guide
+- `internal/service/AGENTS.md` - Service layer guide
