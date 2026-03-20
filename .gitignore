@@ -17,6 +17,7 @@ Thumbs.db
 
 # Environment Variables & Secrets (CRITICAL)
 .env
+.env.ports
 *.pem
 *.key
 json-key.json
