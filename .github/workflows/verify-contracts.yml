@@ -12,13 +12,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-        with:
-          submodules: recursive
 
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
+
+      - name: Setup contracts
+        run: |
+          git clone --depth 1 https://github.com/kaecer68/destiny-contracts.git ../destiny-contracts
 
       - name: Verify contract sync
         run: |
