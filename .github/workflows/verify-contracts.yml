@@ -21,10 +21,14 @@ jobs:
           go-version-file: go.mod
 
       - name: Setup contracts
-        run: |
-          git clone --depth 1 https://x-access-token:${{ secrets.DESTINY_CONTRACTS_TOKEN }}@github.com/kaecer68/destiny-contracts.git ../destiny-contracts
+        uses: actions/checkout@v5
+        with:
+          repository: kaecer68/destiny-contracts
+          token: ${{ secrets.DESTINY_CONTRACTS_TOKEN }}
+          path: destiny-contracts
+          persist-credentials: false
 
       - name: Verify contract sync
         run: |
           chmod +x scripts/sync-contracts.sh
-          make verify-contracts
+          CONTRACT_PORTS_FILE="$GITHUB_WORKSPACE/destiny-contracts/runtime/ports.env" make verify-contracts
