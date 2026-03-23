@@ -24,6 +24,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: kaecer68/destiny-contracts
+          ref: main
           token: ${{ secrets.DESTINY_CONTRACTS_TOKEN }}
           path: destiny-contracts
           persist-credentials: false
