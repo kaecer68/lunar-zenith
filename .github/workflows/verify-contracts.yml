@@ -20,7 +20,7 @@ jobs:
 
       - name: Setup contracts
         run: |
-          git clone --depth 1 https://github.com/kaecer68/destiny-contracts.git ../destiny-contracts
+          git clone --depth 1 https://${{ secrets.GITHUB_TOKEN }}@github.com/kaecer68/destiny-contracts.git ../destiny-contracts
 
       - name: Verify contract sync
         run: |
