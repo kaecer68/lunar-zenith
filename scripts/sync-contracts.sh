@@ -7,6 +7,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 DEFAULT_CONTRACT_PORTS_FILE="$REPO_ROOT/contracts/runtime/ports.env"
 if [[ ! -f "$DEFAULT_CONTRACT_PORTS_FILE" ]]; then
+  # Fallback: try sibling destiny-contracts repo
   DEFAULT_CONTRACT_PORTS_FILE="$REPO_ROOT/../destiny-contracts/runtime/ports.env"
 fi
 
