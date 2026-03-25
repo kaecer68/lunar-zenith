@@ -6,6 +6,7 @@ import (
 
 	lunarv1 "github.com/kaecer68/lunar-zenith/api/v1"
 	"github.com/kaecer68/lunar-zenith/pkg/celestial"
+	"github.com/kaecer68/lunar-zenith/pkg/western_astro"
 	"github.com/kaecer68/lunar-zenith/pkg/zodiac"
 )
 
@@ -78,6 +79,10 @@ func (s *GrpcServer) GetCalendar(ctx context.Context, req *lunarv1.GetCalendarRe
 		})
 	}
 
+	// 10.5 西洋占星 (v1.5.0 新增)
+	westernAstroInfos, _ := western_astro.GetAllRetrogradeInfo(t)
+	aspects, _ := western_astro.CalculateAspects(t)
+
 	// 11. 構建響應
 	res := &lunarv1.GetCalendarResponse{
 		GregorianDate: t.Format("2006-01-02"),
@@ -139,6 +144,45 @@ func (s *GrpcServer) GetCalendar(ctx context.Context, req *lunarv1.GetCalendarRe
 			ShaDesc:      clashSha.ShaDesc,
 		},
 		LunarFestivals: lunarFestivals,
+	}
+
+	for _, info := range westernAstroInfos {
+		item := &lunarv1.WesternAstroInfo{
+			Planet:       int32(info.Planet),
+			NameZh:       info.NameZh,
+			Symbol:       info.Symbol,
+			IsRetrograde: info.IsRetrograde,
+			Longitude:    info.Longitude,
+			Speed:        info.Speed,
+		}
+		if info.NextStationDate != nil {
+			next := info.NextStationDate.Format("2006-01-02")
+			item.NextStationDate = &next
+		}
+		if info.StationType != "" {
+			typ := info.StationType
+			item.StationType = &typ
+		}
+		res.WesternAstro = append(res.WesternAstro, item)
+	}
+
+	for _, a := range aspects {
+		item := &lunarv1.PlanetaryAspect{
+			Planet1:       int32(a.Planet1),
+			Planet1Name:   a.Planet1Name,
+			Planet1Symbol: a.Planet1Symbol,
+			Planet2:       int32(a.Planet2),
+			Planet2Name:   a.Planet2Name,
+			Planet2Symbol: a.Planet2Symbol,
+			Aspect:        string(a.Aspect),
+			Angle:         a.Angle,
+			Orb:           a.Orb,
+		}
+		if a.ExactDate != nil {
+			exact := a.ExactDate.Format(time.RFC3339)
+			item.ExactDate = &exact
+		}
+		res.Aspects = append(res.Aspects, item)
 	}
 
 	// 12. 添加神煞

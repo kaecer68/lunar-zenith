@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.1
 // - protoc             v6.33.5
-// source: api/v1/lunar.proto
+// source: lunar.proto
 
 package lunarv1
 
@@ -119,5 +119,5 @@ var LunarService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "api/v1/lunar.proto",
+	Metadata: "lunar.proto",
 }

@@ -7,13 +7,13 @@
   },
   {
     "date": "20240208",
-    "name": "農曆除夕（彈性放假）",
+    "name": "春節連假",
     "is_holiday": true,
     "category": "holiday"
   },
   {
     "date": "20240209",
-    "name": "春節",
+    "name": "除夕",
     "is_holiday": true,
     "category": "holiday"
   },
@@ -43,13 +43,13 @@
   },
   {
     "date": "20240214",
-    "name": "情人節",
-    "is_holiday": false,
-    "category": "festival"
+    "name": "春節",
+    "is_holiday": true,
+    "category": "holiday"
   },
   {
     "date": "20240217",
-    "name": "補班日",
+    "name": "補班",
     "is_holiday": false,
     "category": "workday"
   },
@@ -60,12 +60,6 @@
     "category": "holiday"
   },
   {
-    "date": "20240308",
-    "name": "婦女節",
-    "is_holiday": false,
-    "category": "festival"
-  },
-  {
     "date": "20240404",
     "name": "兒童節",
     "is_holiday": true,
@@ -73,21 +67,15 @@
   },
   {
     "date": "20240405",
-    "name": "清明節",
+    "name": "民族掃墓節",
     "is_holiday": true,
     "category": "holiday"
   },
   {
     "date": "20240501",
     "name": "勞動節",
-    "is_holiday": false,
-    "category": "festival"
-  },
-  {
-    "date": "20240512",
-    "name": "母親節",
-    "is_holiday": false,
-    "category": "festival"
+    "is_holiday": true,
+    "category": "holiday"
   },
   {
     "date": "20240610",
@@ -96,34 +84,22 @@
     "category": "holiday"
   },
   {
-    "date": "20240808",
-    "name": "父親節",
-    "is_holiday": false,
-    "category": "festival"
-  },
-  {
     "date": "20240917",
     "name": "中秋節",
     "is_holiday": true,
     "category": "holiday"
   },
   {
+    "date": "20240512",
+    "name": "母親節",
+    "is_holiday": false,
+    "category": "festival"
+  },
+  {
     "date": "20241010",
     "name": "國慶日",
     "is_holiday": true,
     "category": "holiday"
-  },
-  {
-    "date": "20241011",
-    "name": "國慶日連假",
-    "is_holiday": true,
-    "category": "holiday"
-  },
-  {
-    "date": "20241225",
-    "name": "行憲紀念日",
-    "is_holiday": false,
-    "category": "festival"
   },
   {
     "date": "20250101",
@@ -133,13 +109,13 @@
   },
   {
     "date": "20250127",
-    "name": "農曆除夕（彈性放假）",
+    "name": "春節連假",
     "is_holiday": true,
     "category": "holiday"
   },
   {
     "date": "20250128",
-    "name": "春節",
+    "name": "除夕",
     "is_holiday": true,
     "category": "holiday"
   },
@@ -162,70 +138,28 @@
     "category": "holiday"
   },
   {
-    "date": "20250201",
-    "name": "春節",
-    "is_holiday": true,
-    "category": "holiday"
-  },
-  {
-    "date": "20250214",
-    "name": "情人節",
-    "is_holiday": false,
-    "category": "festival"
-  },
-  {
     "date": "20250228",
     "name": "和平紀念日",
     "is_holiday": true,
     "category": "holiday"
   },
   {
-    "date": "20250308",
-    "name": "婦女節",
-    "is_holiday": false,
-    "category": "festival"
-  },
-  {
-    "date": "20250403",
-    "name": "兒童節",
-    "is_holiday": true,
-    "category": "holiday"
-  },
-  {
     "date": "20250404",
-    "name": "清明節",
+    "name": "兒童節",
     "is_holiday": true,
     "category": "holiday"
   },
   {
     "date": "20250501",
     "name": "勞動節",
-    "is_holiday": false,
-    "category": "festival"
+    "is_holiday": true,
+    "category": "holiday"
   },
   {
     "date": "20250511",
     "name": "母親節",
     "is_holiday": false,
     "category": "festival"
-  },
-  {
-    "date": "20250531",
-    "name": "端午節",
-    "is_holiday": true,
-    "category": "holiday"
-  },
-  {
-    "date": "20250808",
-    "name": "父親節",
-    "is_holiday": false,
-    "category": "festival"
-  },
-  {
-    "date": "20251006",
-    "name": "中秋節",
-    "is_holiday": true,
-    "category": "holiday"
   },
   {
     "date": "20251010",
@@ -240,88 +174,28 @@
     "category": "holiday"
   },
   {
-    "date": "20260216",
-    "name": "農曆除夕",
-    "is_holiday": true,
-    "category": "holiday"
-  },
-  {
-    "date": "20260217",
-    "name": "春節",
-    "is_holiday": true,
-    "category": "holiday"
-  },
-  {
-    "date": "20260218",
-    "name": "春節",
-    "is_holiday": true,
-    "category": "holiday"
-  },
-  {
-    "date": "20260219",
-    "name": "春節",
-    "is_holiday": true,
-    "category": "holiday"
-  },
-  {
-    "date": "20260220",
-    "name": "春節",
-    "is_holiday": true,
-    "category": "holiday"
-  },
-  {
     "date": "20260228",
     "name": "和平紀念日",
     "is_holiday": true,
     "category": "holiday"
   },
   {
-    "date": "20260308",
-    "name": "婦女節",
-    "is_holiday": false,
-    "category": "festival"
-  },
-  {
-    "date": "20260403",
-    "name": "兒童節",
-    "is_holiday": true,
-    "category": "holiday"
-  },
-  {
     "date": "20260404",
-    "name": "清明節",
+    "name": "兒童節",
     "is_holiday": true,
     "category": "holiday"
   },
   {
     "date": "20260501",
     "name": "勞動節",
-    "is_holiday": false,
-    "category": "festival"
+    "is_holiday": true,
+    "category": "holiday"
   },
   {
     "date": "20260510",
     "name": "母親節",
     "is_holiday": false,
     "category": "festival"
-  },
-  {
-    "date": "20260619",
-    "name": "端午節",
-    "is_holiday": true,
-    "category": "holiday"
-  },
-  {
-    "date": "20260808",
-    "name": "父親節",
-    "is_holiday": false,
-    "category": "festival"
-  },
-  {
-    "date": "20260925",
-    "name": "中秋節",
-    "is_holiday": true,
-    "category": "holiday"
   },
   {
     "date": "20261010",

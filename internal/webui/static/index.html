@@ -171,7 +171,10 @@ body {
   padding: 2px 8px;
   border-radius: 20px;
   margin-top: 6px;
+  margin-left: 8px;
   font-weight: 700;
+  vertical-align: middle;
+  line-height: 1.2;
 }
 
 /* ─── Grid ────────────────────────────── */
@@ -421,6 +424,64 @@ body {
 .officer-info { flex: 1; }
 .officer-name { font-size: 1.3rem; font-weight: 800; }
 .officer-desc { font-size: .8rem; color: var(--text-dim); margin-top: 2px; }
+
+/* ─── Western Astro section ──────────── */
+.western-astro-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 10px;
+}
+
+.planet-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  text-align: center;
+}
+
+.planet-card.retrograde {
+  border-color: var(--red);
+  background: linear-gradient(135deg, #301818, #1a1010);
+}
+
+.planet-symbol {
+  font-size: 2rem;
+  margin-bottom: 4px;
+}
+
+.planet-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.planet-status {
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+
+.planet-status.retrograde {
+  color: var(--red);
+  font-weight: 700;
+}
+
+.planet-status.direct {
+  color: var(--green);
+}
+
+.planet-longitude {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  margin-top: 4px;
+  font-family: 'Courier New', monospace;
+}
+
+.planet-station {
+  font-size: 0.7rem;
+  color: var(--accent);
+  margin-top: 4px;
+}
 
 /* ─── Astronomy section ──────────────── */
 .astro-row {
@@ -866,25 +927,25 @@ function renderData(d, data) {
 </div>
 
 <!-- 假日信息 -->
-${(hol.is_holiday || chinaHol.is_holiday) ? `
+${(hol.name || chinaHol.name) ? `
 <div class="card" style="border:1px solid var(--accent);background:linear-gradient(135deg,var(--surface),#1a1a2d)">
-  <div class="card-title" style="color:var(--accent)">🎌 假日信息</div>
-  ${hol.is_holiday ? `
+  <div class="card-title" style="color:var(--accent)">🎌 節日信息</div>
+  ${hol.name ? `
     <div style="margin-bottom:12px;padding:12px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--accent)">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        <span style="font-size:.7rem;color:var(--text-dim);padding:2px 6px;background:var(--bg);border-radius:4px;border:1px solid var(--border)">台灣</span>
-        <span style="font-size:1.1rem;font-weight:800;color:var(--accent)">${hol.name}</span>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+        <span style="font-size:.7rem;color:var(--text-dim);padding:2px 6px;background:var(--bg);border-radius:4px;border:1px solid var(--border);white-space:nowrap">台灣</span>
+        <span style="font-size:1.1rem;font-weight:800;color:var(--accent);word-break:break-all">${hol.name}</span>
       </div>
-      <div style="font-size:.78rem;color:var(--text-dim)">中華民國法定假日</div>
+      <div style="font-size:.78rem;color:var(--text-dim)">${hol.is_holiday ? '法定假日' : '紀念日/節日'}</div>
     </div>
   ` : ''}
-  ${chinaHol.is_holiday ? `
+  ${chinaHol.name ? `
     <div style="padding:12px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--green)">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        <span style="font-size:.7rem;color:var(--text-dim);padding:2px 6px;background:var(--bg);border-radius:4px;border:1px solid var(--border)">大陸</span>
-        <span style="font-size:1.1rem;font-weight:800;color:var(--green)">${chinaHol.name}</span>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+        <span style="font-size:.7rem;color:var(--text-dim);padding:2px 6px;background:var(--bg);border-radius:4px;border:1px solid var(--border);white-space:nowrap">大陸</span>
+        <span style="font-size:1.1rem;font-weight:800;color:var(--green);word-break:break-all">${chinaHol.name}</span>
       </div>
-      <div style="font-size:.78rem;color:var(--text-dim)">中華人民共和國法定假日</div>
+      <div style="font-size:.78rem;color:var(--text-dim)">${chinaHol.is_holiday ? '法定假日' : '紀念日/節日'}</div>
     </div>
   ` : ''}
 </div>
@@ -1137,7 +1198,20 @@ ${(hol.is_holiday || chinaHol.is_holiday) ? `
   ` : `<div style="color:var(--text-dim);font-size:.85rem;text-align:center;padding:20px">本日無特殊農曆節日</div>`}
 </div>
 
-<!-- 宗教曆法 -->
+<div class="card">
+  <div class="card-title">西洋占星 · 行星狀態</div>
+  <div id="westernAstroContent">
+    ${renderWesternAstro(data.western_astro)}
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">行星相位 · 交匯</div>
+  <div id="aspectsContent">
+    ${renderAspects(data.aspects)}
+  </div>
+</div>
+
 <div class="card">
   <div class="card-title">宗教曆法 · 紀年</div>
   <div class="info-row">
@@ -1206,10 +1280,113 @@ ${(hol.is_holiday || chinaHol.is_holiday) ? `
 
 <div class="footer">
   <div>算曆之巔 Lunar Zenith · 天文級精度曆法計算引擎</div>
-  <div>資料來源：VSOP87 (太陽) · ELP2000-82 (月球) · 台灣曆法標準</div>
+  <div>資料來源：VSOP87 (太陽) · ELP2000-82 (月球) · Swiss Ephemeris (西方占星)</div>
   <div style="margin-top:4px;color:var(--gold-dim)">REST API: GET /v1/calendar?date=YYYY-MM-DD · gRPC: :50051</div>
 </div>
 `;
+  return html;
+}
+
+function renderWesternAstro(westernAstro) {
+  if (!westernAstro || westernAstro.length === 0) {
+    return '<div style="color:var(--text-dim);text-align:center;padding:20px">西方占星資料載入中...</div>';
+  }
+  
+  const planetCards = westernAstro.map(p => {
+    const isRetro = p.is_retrograde;
+    const statusText = isRetro ? '逆行' : '順行';
+    const statusClass = isRetro ? 'retrograde' : 'direct';
+    const stationInfo = p.next_station_date ? 
+      `<div class="planet-station">下次${p.station_type === 'retrograde' ? '逆行' : '順行'}: ${p.next_station_date}</div>` : '';
+    
+    return `
+    <div class="planet-card ${isRetro ? 'retrograde' : ''}">
+      <div class="planet-symbol">${p.symbol}</div>
+      <div class="planet-name">${p.name_zh}</div>
+      <div class="planet-status ${statusClass}">${statusText}</div>
+      <div class="planet-longitude">${p.longitude.toFixed(2)}°</div>
+      ${stationInfo}
+    </div>
+    `;
+  }).join('');
+  
+  return `
+  <div class="western-astro-grid">
+    ${planetCards}
+  </div>
+  <div style="margin-top:12px;padding:8px;background:var(--surface2);border-radius:8px;font-size:.75rem;color:var(--text-dim)">
+    <div>逆行(Retrograde): 行星視運動方向反轉</div>
+    <div style="margin-top:4px">水逆週期約每4個月一次，每次約3週</div>
+  </div>
+  `;
+}
+
+function renderAspects(aspects) {
+  if (!aspects || aspects.length === 0) {
+    return '<div style="color:var(--text-dim);text-align:center;padding:20px">無主要行星相位</div>';
+  }
+  
+  const conjunctions = aspects.filter(a => a.aspect === '合相');
+  const oppositions = aspects.filter(a => a.aspect === '對沖');
+  const others = aspects.filter(a => a.aspect !== '合相' && a.aspect !== '對沖');
+  
+  const renderAspectItem = (a) => {
+    const isConjunction = a.aspect === '合相';
+    const isOpposition = a.aspect === '對沖';
+    const bgColor = isConjunction ? '#1a3018' : isOpposition ? '#301818' : 'var(--surface2)';
+    const borderColor = isConjunction ? '#2a5a30' : isOpposition ? '#5a2828' : 'var(--border)';
+    const textColor = isConjunction ? 'var(--green)' : isOpposition ? 'var(--red)' : 'var(--accent)';
+    
+    return `
+    <div style="background:${bgColor};border:1px solid ${borderColor};border-radius:8px;padding:10px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:1.2rem">${a.planet1_symbol}</span>
+          <span style="font-size:.8rem;color:var(--text-dim)">${a.planet1_name}</span>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:.9rem;font-weight:700;color:${textColor}">${a.aspect}</div>
+          <div style="font-size:.65rem;color:var(--text-dim)">誤差 ${a.orb.toFixed(1)}°</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:.8rem;color:var(--text-dim)">${a.planet2_name}</span>
+          <span style="font-size:1.2rem">${a.planet2_symbol}</span>
+        </div>
+      </div>
+    </div>
+    `;
+  };
+  
+  let html = '';
+  
+  if (conjunctions.length > 0) {
+    html += `
+      <div style="margin-bottom:12px">
+        <div style="font-size:.75rem;color:var(--green);margin-bottom:6px">🌟 合相 (重要)</div>
+        ${conjunctions.map(renderAspectItem).join('')}
+      </div>
+    `;
+  }
+  
+  if (oppositions.length > 0) {
+    html += `
+      <div style="margin-bottom:12px">
+        <div style="font-size:.75rem;color:var(--red);margin-bottom:6px">⚡ 對沖 (張力)</div>
+        ${oppositions.map(renderAspectItem).join('')}
+      </div>
+    `;
+  }
+  
+  if (others.length > 0) {
+    html += `
+      <div>
+        <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:6px">其他相位</div>
+        ${others.slice(0, 5).map(renderAspectItem).join('')}
+        ${others.length > 5 ? `<div style="text-align:center;color:var(--text-dim);font-size:.7rem">還有 ${others.length - 5} 個相位...</div>` : ''}
+      </div>
+    `;
+  }
+  
   return html;
 }
 

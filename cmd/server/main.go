@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	lunarv1 "github.com/kaecer68/lunar-zenith/api/v1"
@@ -13,14 +14,36 @@ import (
 	"google.golang.org/grpc"
 )
 
-func getEnvWithFallback(primary, fallback, defaultValue string) string {
+func getEnvWithFallback(primary, fallback string) string {
 	if v := os.Getenv(primary); v != "" {
 		return v
 	}
 	if v := os.Getenv(fallback); v != "" {
 		return v
 	}
-	return defaultValue
+	return loadPortFromEnvFile(primary)
+}
+
+func loadPortFromEnvFile(key string) string {
+	data, err := os.ReadFile(".env.ports")
+	if err != nil {
+		log.Fatalf("錯誤：找不到 .env.ports 檔案。請先執行 'make sync-contracts' 同步契約。%v", err)
+	}
+
+	lines := strings.Split(string(data), "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "#") || line == "" {
+			continue
+		}
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) == 2 && strings.TrimSpace(parts[0]) == key {
+			return strings.TrimSpace(parts[1])
+		}
+	}
+
+	log.Fatalf("錯誤：在 .env.ports 中找不到 %s。請執行 'make sync-contracts' 重新生成。", key)
+	return ""
 }
 
 func main() {
@@ -32,7 +55,7 @@ func main() {
 	}
 
 	// 大陸假期
-	chinaHolidaySvc := service.NewHolidayService()
+	chinaHolidaySvc := service.NewHolidayServiceWithFallback(holidaySvc)
 	if err := chinaHolidaySvc.LoadFromJSON("configs/holidays_cn_2024_2026.json"); err != nil {
 		log.Printf("Warning: Failed to load China holiday data: %v", err)
 	}
@@ -62,7 +85,7 @@ func main() {
 
 	// 4. 啟動 gRPC 服務器（在背景 goroutine）
 	go func() {
-		grpcPort := getEnvWithFallback("LUNAR_GRPC_PORT", "GRPC_PORT", "50051")
+		grpcPort := getEnvWithFallback("LUNAR_GRPC_PORT", "GRPC_PORT")
 		lis, err := net.Listen("tcp", ":"+grpcPort)
 		if err != nil {
 			log.Fatalf("Failed to listen gRPC: %v", err)
@@ -79,7 +102,7 @@ func main() {
 	}()
 
 	// 5. 啟動 REST HTTP 服務
-	port := getEnvWithFallback("LUNAR_REST_PORT", "REST_PORT", "8080")
+	port := getEnvWithFallback("LUNAR_REST_PORT", "REST_PORT")
 	log.Printf("Lunar-Zenith REST API starts on :%s", port)
 	if err := r.Run(":" + port); err != nil {
 		log.Fatal("Failed to run server: ", err)

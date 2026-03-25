@@ -42,6 +42,10 @@ message GetCalendarResponse {
   ClashSha clash_sha = 18;                 // 沖煞
   repeated LunarFestival lunar_festivals = 19;  // 農曆宗教節日列表
   HolidayInfo china_holiday_info = 20;     // 大陸行政假期
+
+  // v1.5.0 新增欄位 - 西洋占星
+  repeated WesternAstroInfo western_astro = 21; // 行星順逆行資訊
+  repeated PlanetaryAspect aspects = 22;         // 行星相位/交匯資訊
 }
 
 message LunarInfo {
@@ -121,4 +125,30 @@ message LunarFestival {
   string type = 2;         // 類型：道教/佛教/民間/民俗
   string description = 3;  // 說明
   int32 priority = 4;      // 優先級
+}
+
+// WesternAstroInfo 西洋占星行星資訊 (v1.5.0 新增)
+message WesternAstroInfo {
+  int32 planet = 1;
+  string name_zh = 2;
+  string symbol = 3;
+  bool is_retrograde = 4;
+  double longitude = 5;
+  double speed = 6;
+  optional string next_station_date = 7;
+  optional string station_type = 8;
+}
+
+// PlanetaryAspect 行星相位資訊 (v1.5.0 新增)
+message PlanetaryAspect {
+  int32 planet1 = 1;
+  string planet1_name = 2;
+  string planet1_symbol = 3;
+  int32 planet2 = 4;
+  string planet2_name = 5;
+  string planet2_symbol = 6;
+  string aspect = 7;
+  double angle = 8;
+  double orb = 9;
+  optional string exact_date = 10;
 }

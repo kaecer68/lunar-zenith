@@ -16,7 +16,9 @@ func TestAggregator_GetCalendar(t *testing.T) {
 		IsHoliday: true,
 	}
 
-	agg := NewAggregator(hSvc)
+	chinaSvc := NewHolidayService()
+
+	agg := NewAggregator(hSvc, chinaSvc)
 
 	// 2024-01-01 12:00
 	testTime := time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC)

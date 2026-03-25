@@ -1,7 +1,7 @@
 # 🌙 Lunar-Zenith (算曆之巔)
 
 [![Go Version](https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat&logo=go)](https://golang.org)
-[![Version](https://img.shields.io/badge/Version-v1.4.0-blue)](https://github.com/kaecer68/lunar-zenith/releases/tag/v1.4.0)
+[![Version](https://img.shields.io/badge/Version-v1.5.0-blue)](https://github.com/kaecer68/lunar-zenith/releases/tag/v1.5.0)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Precision](https://img.shields.io/badge/Precision-Astronomical-blueviolet)](#)
 
@@ -18,6 +18,13 @@
   - **神煞系統**: 內建建除十二神、年驛馬、年桃花等常用神煞。
   - **擴充神煞**: 二十八星宿、值神、胎神、沖煞 (v1.4.0 新增)。
   - **宗教支持**: 自動換算佛曆 (Buddhist) 與道曆 (Taoist) 年份，內建台灣重要農曆宗教節日 (玉皇大帝、觀世音、媽祖等)。
+- **🎉 節日/紀念日雙區域模型 (v1.5.0)**:
+  - 台灣：節日與紀念日可顯示，不以是否放假作為顯示條件。
+  - 大陸：以台灣為基礎做規則覆寫（如 6/1 兒童節、8/1 建軍節、6月第3個週日父親節、9/10 教師節）。
+  - `is_holiday` 僅表示休假狀態；工作日與週末預設不顯示節日名稱。
+- **🪐 西洋占星輸出 (v1.5.0)**:
+  - 行星順行/逆行資訊：`western_astro`
+  - 行星相位/交匯資訊：`aspects`
 - **⚡ 高性能架構**: 全無狀態 (Stateless) 設計，支持 gRPC 與 REST 雙棧通訊，具備 Zero-Panic 的健壯性。
 - **🌐 網頁查詢介面**: 內建現代化 Web UI，無需客戶端即可通過瀏覽器查詢完整曆法資訊。
 
@@ -82,6 +89,23 @@ make dev-clean
 ```bash
 curl "http://localhost:8080/v1/calendar?date=2024-02-10"
 ```
+
+### 4.1 主要 API 欄位（v1.5.0）
+
+- 行政節日：`holiday_info`（台灣）、`china_holiday_info`（大陸）
+- 西洋占星：`western_astro`（順逆行）、`aspects`（相位/交匯）
+
+---
+
+## 🔁 契約同步與維護
+
+- OpenAPI 契約：`contracts/openapi/lunar-zenith.yaml`
+- gRPC 契約：`api/v1/lunar.proto`
+- 每次新增欄位後請同步：
+  1. 更新契約（OpenAPI + proto）
+  2. 更新 `internal/service/rest_handler.go` 與 `internal/service/grpc_server.go`
+  3. 重新生成 `api/v1/*.pb.go`
+  4. 執行 `make verify-contracts` 與 `go test ./...`
 
 ---
 

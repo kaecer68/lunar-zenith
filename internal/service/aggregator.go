@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/kaecer68/lunar-zenith/pkg/celestial"
+	"github.com/kaecer68/lunar-zenith/pkg/western_astro"
 	"github.com/kaecer68/lunar-zenith/pkg/zodiac"
 )
 
@@ -65,6 +66,9 @@ type CalendarResponse struct {
 
 	// 10. 農曆宗教節日
 	LunarFestivals []FestivalInfo `json:"lunar_festivals"` // 當日農曆節日列表
+
+	WesternAstro []western_astro.RetrogradeInfo  `json:"western_astro"`
+	Aspects      []western_astro.PlanetaryAspect `json:"aspects"`
 }
 
 // Aggregator 聚合服務
@@ -132,6 +136,9 @@ func (a *Aggregator) GetCalendar(t time.Time) CalendarResponse {
 		})
 	}
 
+	westernAstroInfos, _ := western_astro.GetAllRetrogradeInfo(t)
+	aspects, _ := western_astro.CalculateAspects(t)
+
 	res := CalendarResponse{
 		GregorianDate:  t.Format("2006-01-02"),
 		JulianDay:      pt.JD,
@@ -153,6 +160,8 @@ func (a *Aggregator) GetCalendar(t time.Time) CalendarResponse {
 		FetalGod:       fetalGod,
 		ClashSha:       clashSha,
 		LunarFestivals: festivals,
+		WesternAstro:   westernAstroInfos,
+		Aspects:        aspects,
 	}
 
 	// 6. 假期 (若已加載)
