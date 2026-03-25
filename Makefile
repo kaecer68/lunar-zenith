@@ -1,5 +1,7 @@
 
-.PHONY: dev run sync-contracts verify-contracts dev-clean
+.PHONY: dev run sync-contracts verify-contracts dev-clean test vet build verify-all
+
+GO_CHECK_ENV = CGO_LDFLAGS='-Wl,-w'
 
 dev:
 	@chmod +x scripts/sync-contracts.sh
@@ -15,6 +17,17 @@ sync-contracts:
 verify-contracts:
 	@chmod +x scripts/sync-contracts.sh
 	bash scripts/sync-contracts.sh --check
+
+test:
+	bash -c "$(GO_CHECK_ENV) go test ./..."
+
+vet:
+	bash -c "$(GO_CHECK_ENV) go vet ./..."
+
+build:
+	bash -c "$(GO_CHECK_ENV) go build ./..."
+
+verify-all: verify-contracts test vet build
 
 dev-clean:
 	@chmod +x scripts/dev-clean.sh
