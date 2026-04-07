@@ -81,3 +81,56 @@ func FindNewMoon(jde float64, direction float64) float64 {
 	}
 	return (low + high) / 2
 }
+
+// meanNewMoonJDE 根據 Meeus 第 49 章公式計算第 k 個朔日的 JDE（k=0 對應 2000-01-06.0 UT）。
+func meanNewMoonJDE(k float64) float64 {
+	t := k / 1236.85
+	return 2451550.09766 +
+		29.530588853*k +
+		0.00015437*t*t -
+		0.000000150*t*t*t +
+		0.00000000073*t*t*t*t
+}
+
+// PreviousNewMoon 以 Meeus 均值公式估算再用 ±2 天窄窗口二分求精，
+// 穩定回傳 jde 之前最近的朔日 JDE。
+// 解決 FindNewMoon(jde,-1) 在「jde 剛好在朔日後幾小時」時收斂到
+// 前一個月朔日的二分法臨界問題。
+func PreviousNewMoon(jde float64) float64 {
+	phaseSigned := func(t float64) float64 {
+		p := MoonPhase(t)
+		if p > 180 {
+			p -= 360
+		}
+		return p
+	}
+
+	// 往回掃描 30 天尋找最後一次「負 -> 正」過零（朔）。
+	const step = 0.25
+	high := jde
+	sHigh := phaseSigned(high)
+	for i := 0; i < 120; i++ {
+		low := high - step
+		sLow := phaseSigned(low)
+		if sLow <= 0 && sHigh >= 0 {
+			const precision = 0.00001
+			for j := 0; j < 50; j++ {
+				mid := (low + high) / 2.0
+				sMid := phaseSigned(mid)
+				if math.Abs(high-low) < precision {
+					return mid
+				}
+				if sMid < 0 {
+					low = mid
+				} else {
+					high = mid
+				}
+			}
+			return (low + high) / 2.0
+		}
+		high, sHigh = low, sLow
+	}
+
+	// 保底：若掃描失敗，退回原始方法。
+	return FindNewMoon(jde, -1)
+}

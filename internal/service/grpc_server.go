@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	lunarv1 "github.com/kaecer68/lunar-zenith/api/v1"
+	lunarv1 "github.com/kaecer68/lunar-zenith/gen"
 	"github.com/kaecer68/lunar-zenith/pkg/celestial"
 	"github.com/kaecer68/lunar-zenith/pkg/western_astro"
 	"github.com/kaecer68/lunar-zenith/pkg/zodiac"

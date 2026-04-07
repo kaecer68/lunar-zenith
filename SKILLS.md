@@ -1,8 +1,8 @@
 # Lunar-Zenith Skills Map
 
 **Purpose**: 本文件提供 AI 助手快速了解黃曆計算系統與本專案實現的知識地圖。
-**Version**: 1.0.0  
-**Updated**: 2026-03-25  
+**Version**: 1.1.0  
+**Updated**: 2026-04-08  
 **For**: AI Assistants working on lunar-zenith project
 
 ---
@@ -70,11 +70,14 @@ JD = 365.25*(y+4716) + 30.6001*(m+1) + d + b - 1524.5
 **估計值**:
 - 2000 年: ~64 秒
 - 2024 年: ~69 秒
-- 線性增長: ~0.5-1 秒/年
+
+**當前實作狀態**:
+- 使用 Espenak/Meeus 多段多項式
+- 覆蓋 1800-2150 年（並提供區間外保守外推）
 
 **代碼位置**: `pkg/celestial/base.go:EstimateDeltaT()`
 
-**公式**: ΔT = 62.92 + 0.32217*(y-2000) + 0.005589*(y-2000)² (NASA/Espenak, 2005-2050)
+**說明**: 2005-2050 區間使用 `62.92 + 0.32217*u + 0.005589*u²`；其餘年代使用對應段落公式。
 
 ### 2.3 太陽位置計算 (VSOP87)
 
@@ -481,23 +484,23 @@ BranchIndex = 40 % 12 = 4 (辰)
 
 ### 6.7.1 Contract-First 準則
 
-1. 先更新契約：`contracts/openapi/lunar-zenith.yaml`、`api/v1/lunar.proto`。  
+1. 先更新契約：`contracts/openapi/lunar-zenith.yaml`、`proto/lunar.proto`。  
 2. 再同步服務層：`internal/service/rest_handler.go`、`internal/service/grpc_server.go`。  
 3. 最後驗證：`go test ./...`、`make verify-contracts`。
 
 ### 6.7.2 gRPC 同步實務
 
-- 修改 `api/v1/lunar.proto` 後，重新生成：
+- 修改 `proto/lunar.proto` 後，重新生成：
 
 ```bash
 PATH="$PATH:$(go env GOPATH)/bin" protoc \
-  --proto_path=api/v1 \
-  --go_out=api/v1 --go_opt=paths=source_relative \
-  --go-grpc_out=api/v1 --go-grpc_opt=paths=source_relative \
-  api/v1/lunar.proto
+  --proto_path=proto \
+  --go_out=gen --go_opt=paths=source_relative \
+  --go-grpc_out=gen --go-grpc_opt=paths=source_relative \
+  proto/lunar.proto
 ```
 
-- 避免手改 `api/v1/*.pb.go`，以生成結果為準。
+- 避免手改 `gen/*.pb.go`，以生成結果為準。
 
 ### 6.7.3 REST/gRPC 一致性檢查
 
@@ -555,6 +558,7 @@ SolarLongitude(jde) - 太陽黃經
 MoonLongitude(jde) - 月球黃經
 MoonPhase(jde) - 日月黃經差
 FindNewMoon(jd, dir) - 尋找朔日
+PreviousNewMoon(jde) - 取得當前時刻前一個朔日（邊界更穩定）
 GetSolarTerm(jde) - 獲取節氣
 ```
 
@@ -601,27 +605,22 @@ GetDeityDirections(dayStem) - 吉神方位
 
 ### 8.1 閏月計算
 
-**問題**: `lunar_engine.go:59` 閏月判定尚未完全實現
+**現況**: 已實作冬至到冬至週期 + 無中氣月判定，2023/2025 等風險年主測試已通過。
 
-**影響**:
-- 2024 無閏月，計算正確
-- 2023 (閏二月)、2025 (閏六月) 等有閏月年份可能出錯
+**仍需注意**:
+- 2001-01-24（春節邊界）
+- 2020-05-23（閏四月初一邊界）
 
-**解決方向**:
-實現「無中氣月」判定邏輯：
-1. 計算每個朔望月的兩個節氣
-2. 若月份只含節氣不含中氣，則為閏月
-3. 閏月使用前一月名稱加「閏」字
+上述兩案已保留在邊界追蹤測試（skip + 診斷輸出），待朔日/日界處理再收斂後改為硬斷言。
 
 ### 8.2 Delta-T 精度
 
-**問題**: 當前僅支援 2000-2100 年
+**現況**: 已由單段近似升級為多段多項式（1800-2150）。
 
-**影響**: 歷史日期或遠期日期誤差較大
+**影響**: 1900+ 歷史年份的 JDE 校正精度明顯改善，可支撐命盤相關長時間跨度需求。
 
-**解決方向**: 
-- 使用表驅動方式載入 NASA 歷史數據
-- 或實現更精確的多項式擬合
+**後續可選優化**:
+- 若需 17-18 世紀高精度，可加入表驅動歷史數據比對。
 
 ### 8.3 時區處理
 

@@ -5,50 +5,26 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"os"
 	"strings"
 	"time"
 
-	lunarv1 "github.com/kaecer68/lunar-zenith/api/v1"
+	lunarv1 "github.com/kaecer68/lunar-zenith/gen"
+	runtimecfg "github.com/kaecer68/lunar-zenith/internal/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func getEnvWithFallback(primary, fallback string) string {
-	if v := os.Getenv(primary); v != "" {
-		return v
-	}
-	if v := os.Getenv(fallback); v != "" {
-		return v
-	}
-	return loadPortFromEnvFile(primary)
-}
-
-func loadPortFromEnvFile(key string) string {
-	data, err := os.ReadFile(".env.ports")
-	if err != nil {
-		log.Fatalf("錯誤：找不到 .env.ports 檔案。請先執行 'make sync-contracts' 同步契約。%v", err)
-	}
-
-	lines := strings.Split(string(data), "\n")
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "#") || line == "" {
-			continue
-		}
-		parts := strings.SplitN(line, "=", 2)
-		if len(parts) == 2 && strings.TrimSpace(parts[0]) == key {
-			return strings.TrimSpace(parts[1])
-		}
-	}
-
-	log.Fatalf("錯誤：在 .env.ports 中找不到 %s。請執行 'make sync-contracts' 重新生成。", key)
-	return ""
-}
-
 func main() {
-	grpcPort := getEnvWithFallback("LUNAR_GRPC_PORT", "GRPC_PORT")
-	address := fmt.Sprintf("localhost:%s", grpcPort)
+	grpcPort, err := runtimecfg.GetRequiredPort("LUNAR_GRPC_PORT", "GRPC_PORT")
+	if err != nil {
+		log.Fatal(fmt.Errorf("load gRPC port: %w", err))
+	}
+	address, err := grpcTarget(grpcPort)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -79,4 +55,23 @@ func main() {
 		fmt.Printf("✅ SolarTerm.Name: %s\n", resp.SolarTerm.Name)
 		fmt.Printf("✅ SolarTerm.Longitude: %.4f\n", resp.SolarTerm.Longitude)
 	}
+}
+
+func grpcTarget(port string) (string, error) {
+	if value := strings.TrimSpace(os.Getenv("LUNAR_GRPC_TARGET")); value != "" {
+		return value, nil
+	}
+	if value := strings.TrimSpace(os.Getenv("GRPC_TARGET")); value != "" {
+		return value, nil
+	}
+
+	host := strings.TrimSpace(os.Getenv("LUNAR_GRPC_HOST"))
+	if host == "" {
+		host = strings.TrimSpace(os.Getenv("GRPC_HOST"))
+	}
+	if host == "" {
+		return "", fmt.Errorf("missing gRPC target: set LUNAR_GRPC_TARGET or LUNAR_GRPC_HOST")
+	}
+
+	return net.JoinHostPort(host, port), nil
 }

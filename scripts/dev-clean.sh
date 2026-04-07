@@ -5,17 +5,25 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 PORTS_FILE="$REPO_ROOT/.env.ports"
-CONTRACT_PORTS_FILE="$REPO_ROOT/contracts/runtime/ports.env"
+SYNC_SCRIPT="$REPO_ROOT/scripts/sync-contracts.sh"
 
-LUNAR_GRPC_PORT="${LUNAR_GRPC_PORT:-50051}"
-LUNAR_REST_PORT="${LUNAR_REST_PORT:-8080}"
+if [[ ! -x "$SYNC_SCRIPT" ]]; then
+  chmod +x "$SYNC_SCRIPT"
+fi
 
-if [[ -f "$PORTS_FILE" ]]; then
-  # shellcheck disable=SC1090
-  source "$PORTS_FILE"
-elif [[ -f "$CONTRACT_PORTS_FILE" ]]; then
-  # shellcheck disable=SC1090
-  source "$CONTRACT_PORTS_FILE"
+bash "$SYNC_SCRIPT" >/dev/null
+
+if [[ ! -f "$PORTS_FILE" ]]; then
+  echo "[dev-clean] 缺少 $PORTS_FILE，請先執行 scripts/sync-contracts.sh" >&2
+  exit 1
+fi
+
+# shellcheck disable=SC1090
+source "$PORTS_FILE"
+
+if [[ -z "${LUNAR_GRPC_PORT:-}" || -z "${LUNAR_REST_PORT:-}" ]]; then
+  echo "[dev-clean] .env.ports 缺少必要欄位 LUNAR_GRPC_PORT 或 LUNAR_REST_PORT" >&2
+  exit 1
 fi
 
 ports=("$LUNAR_GRPC_PORT" "$LUNAR_REST_PORT")

@@ -27,7 +27,8 @@ pkg/zodiac/
 | 日干支計算 | `sexagenary.go:GetDaySexagenary()` | JD 基準，2000-01-01 戊午日 |
 | 月干支 (五虎遁) | `sexagenary.go:GetMonthSexagenary()` | 寅月起算 |
 | 時干支 (五鼠遁) | `sexagenary.go:GetHourSexagenary()` | 子時 23:00-01:00 |
-| 農曆轉換 | `lunar_engine.go` | 閏月判定待完善 |
+| 農曆轉換 | `lunar_engine.go` | 已實作無中氣月定閏，先看邊界測試與 `IsLeap` 輸出 |
+| 閏月輸出 | `lunar_date.go` | `LunarDate.IsLeap` 可用；邊界年份請搭配測試驗證 |
 | 神煞計算 | `shensha.go` | 建除十二神，年支神煞 |
 | 宗教年份 | `religious.go` | 佛曆 (Buddhist), 道曆 (Taoist) |
 
@@ -37,11 +38,13 @@ pkg/zodiac/
 - **Month Base**: 農曆月以寅月 (正月) 為 1，非公曆 1 月
 - **Hour Branch**: 子時跨日 (23:00-01:00), `GetHourBranch()` 處理
 - **Animal Mapping**: `ZodiacAnimals[]` 直接對應地支索引
+- **Correctness Claims**: 若功能涉及農曆月序、`IsLeap`、農曆年切換、節日落點或對外 API 欄位，只有在明確驗證過對應閏月年份後，才可宣稱「正確」或「已支援」
 
 ## ANTI-PATTERNS
 
 - ❌ 使用公曆月份直接計算月干支 (必須轉為農曆寅月起算)
-- ❌ 忽略閏月判定 (目前 `lunar_engine.go:59` TODO，2024 無閏月可用)
+- ❌ 忽略閏月與邊界年份驗證（尤其 2001、2020、2033 這類高風險日期）
+- ❌ 在未驗證閏月年份前，宣稱農曆日期、節日落點或 `IsLeap` 輸出對所有年份正確
 - ❌ 修改基準常量 (西元 4 年甲子，2000-01-01 戊午日)
 
 ## KEY FUNCTIONS
@@ -65,9 +68,11 @@ GetHourBranch(hour int) int
 
 ## KNOWN LIMITATIONS
 
-1. **Leap Month**: `lunar_engine.go:59` - 閏月判定待完善 (無中氣月邏輯)
-   - 目前 2024 無閏月，MVP 可用
-   - 2023, 2025 等有閏月年份會出錯
+1. **Leap Month Edge Cases**: 定閏主邏輯已上線，但邊界年份仍需嚴格驗證
+   - 2023、2025 主風險年案例已納入並通過
+   - 2001-01-24、2020-05-23、2033 等邊界案例目前仍應視為高風險；不可憑推測宣稱正確
+   - 若修改會影響 `LunarDate.Month`、`LunarDate.IsLeap`、農曆新年、節日映射或任何對外 API 欄位，必須先補對應年份測試或明確標註未支援範圍
+   - 在未完成上述驗證前，正確說法應是「目前僅對已驗證年份有信心」，而不是「已支援所有年份農曆/閏月」
 
 2. **Test Coverage**: 邊界條件測試不足 (閏年，歷史日期)
 
@@ -83,3 +88,6 @@ go test ./pkg/zodiac/... -v
 ```
 
 Test files: `*_test.go` for each module (table-driven tests)
+
+- When touching lunar conversion logic, add or run focused cases that cover at least one no-leap year and one leap-month year.
+- If the change affects public responses, verify downstream behavior in `internal/service/` instead of checking `pkg/zodiac/` only.

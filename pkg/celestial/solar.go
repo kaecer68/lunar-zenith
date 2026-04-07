@@ -112,6 +112,17 @@ var SolarTerms = []string{
 	"冬至", "小寒", "大寒", "立春", "雨水", "驚蟄",
 }
 
+// FindNextWinterSolstice 尋找下一個冬至 (270度) 的 JDE
+func FindNextWinterSolstice(jde float64) float64 {
+	for d := jde; d < jde+400; d += 5 {
+		lon := SolarLongitude(d)
+		if lon > 265 && lon < 275 {
+			return EstimateTermTime(270.0, d-10, d+10)
+		}
+	}
+	return EstimateTermTime(270.0, jde, jde+370.0)
+}
+
 // FindPreviousWinterSolstice 尋找上一個冬至 (270度) 的 JDE
 func FindPreviousWinterSolstice(jde float64) float64 {
 	// 粗略定位 270 度的範圍

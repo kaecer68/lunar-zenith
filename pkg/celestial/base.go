@@ -78,18 +78,61 @@ func JDToDate(jd float64) (year, month, day int) {
 	return
 }
 
-// EstimateDeltaT 估算 TT 與 UT 之間的差值
-// 這裡暫時使用一個簡化的二次多項式擬合算法，未來將優化為表驅動
+// EstimateDeltaT 估算 TT 與 UT 之間的差值（秒）
+// 採用 NASA/Espenak & Meeus 多段多項式擬合，覆蓋 1800–2150 年
+// 參考: https://eclipsewise.com/help/deltatpoly2014.html
 func EstimateDeltaT(t time.Time) float64 {
 	y := float64(t.Year()) + (float64(t.Month())-0.5)/12.0
-	t_val := (y - 2000) / 100
-	// 根據 NASA/Espenak 擬合公式 (2005-2050)
-	// ΔT = 62.92 + 0.32217 * (y - 2000) + 0.005589 * (y - 2000)^2
-	if y >= 2000 && y <= 2100 {
-		dy := y - 2000
-		return 62.92 + 0.32217*dy + 0.005589*dy*dy
+
+	switch {
+	case y < 1800:
+		// 延伸公式：Stephenson & Houlden (1986) 適用 948–1600，此處做保守外推
+		u := (y - 1820) / 100
+		return -20 + 32*u*u
+
+	case y < 1860:
+		u := y - 1820
+		return 124.07 - 0.9246*u + 0.003141*u*u
+
+	case y < 1900:
+		u := y - 1860
+		return 7.62 + 0.5737*u - 0.251754*u*u +
+			0.01680668*u*u*u -
+			0.0004473624*u*u*u*u +
+			u*u*u*u*u/233174
+
+	case y < 1920:
+		u := y - 1900
+		return -2.79 + 1.494119*u - 0.0598939*u*u +
+			0.0061966*u*u*u - 0.000197*u*u*u*u
+
+	case y < 1941:
+		u := y - 1920
+		return 21.20 + 0.84493*u - 0.076100*u*u + 0.0020936*u*u*u
+
+	case y < 1961:
+		u := y - 1950
+		return 29.07 + 0.407*u - u*u/233 + u*u*u/2547
+
+	case y < 1986:
+		u := y - 1975
+		return 45.45 + 1.067*u - u*u/260 - u*u*u/718
+
+	case y < 2005:
+		u := y - 2000
+		return 63.86 + 0.3345*u - 0.060374*u*u +
+			0.0017275*u*u*u + 0.000651814*u*u*u*u +
+			0.00002373599*u*u*u*u*u
+
+	case y < 2050:
+		u := y - 2000
+		return 62.92 + 0.32217*u + 0.005589*u*u
+
+	case y < 2150:
+		return -20 + 32*((y-1820)/100)*((y-1820)/100) - 0.5628*(2150-y)
+
+	default:
+		u := (y - 1820) / 100
+		return -20 + 32*u*u
 	}
-	// 預設返回當前大致值 (2024年約為 69s)
-	_ = t_val
-	return 69.0
 }

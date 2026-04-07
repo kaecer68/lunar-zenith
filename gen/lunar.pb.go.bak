@@ -1336,7 +1336,7 @@ const file_lunar_proto_rawDesc = "" +
 	" \x01(\tH\x00R\texactDate\x88\x01\x01B\r\n" +
 	"\v_exact_date2V\n" +
 	"\fLunarService\x12F\n" +
-	"\vGetCalendar\x12\x1a.api.v1.GetCalendarRequest\x1a\x1b.api.v1.GetCalendarResponseB1Z/github.com/kaecer68/lunar-zenith/api/v1;lunarv1b\x06proto3"
+	"\vGetCalendar\x12\x1a.api.v1.GetCalendarRequest\x1a\x1b.api.v1.GetCalendarResponseB1Z/github.com/kaecer68/lunar-zenith/gen;lunarv1b\x06proto3"
 
 var (
 	file_lunar_proto_rawDescOnce sync.Once

@@ -1,52 +1,30 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"net/http"
-	"os"
-	"strings"
 
 	"github.com/gin-gonic/gin"
-	lunarv1 "github.com/kaecer68/lunar-zenith/api/v1"
+	lunarv1 "github.com/kaecer68/lunar-zenith/gen"
+	runtimecfg "github.com/kaecer68/lunar-zenith/internal/runtime"
 	"github.com/kaecer68/lunar-zenith/internal/service"
 	"github.com/kaecer68/lunar-zenith/internal/webui"
 	"google.golang.org/grpc"
 )
 
-func getEnvWithFallback(primary, fallback string) string {
-	if v := os.Getenv(primary); v != "" {
-		return v
-	}
-	if v := os.Getenv(fallback); v != "" {
-		return v
-	}
-	return loadPortFromEnvFile(primary)
-}
-
-func loadPortFromEnvFile(key string) string {
-	data, err := os.ReadFile(".env.ports")
-	if err != nil {
-		log.Fatalf("錯誤：找不到 .env.ports 檔案。請先執行 'make sync-contracts' 同步契約。%v", err)
-	}
-
-	lines := strings.Split(string(data), "\n")
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "#") || line == "" {
-			continue
-		}
-		parts := strings.SplitN(line, "=", 2)
-		if len(parts) == 2 && strings.TrimSpace(parts[0]) == key {
-			return strings.TrimSpace(parts[1])
-		}
-	}
-
-	log.Fatalf("錯誤：在 .env.ports 中找不到 %s。請執行 'make sync-contracts' 重新生成。", key)
-	return ""
-}
-
 func main() {
+	grpcPort, err := runtimecfg.GetRequiredPort("LUNAR_GRPC_PORT", "GRPC_PORT")
+	if err != nil {
+		log.Fatal(fmt.Errorf("load gRPC port: %w", err))
+	}
+
+	restPort, err := runtimecfg.GetRequiredPort("LUNAR_REST_PORT", "REST_PORT")
+	if err != nil {
+		log.Fatal(fmt.Errorf("load REST port: %w", err))
+	}
+
 	// 1. 初始化服務
 	// 台灣假期 - 使用完整假期數據
 	holidaySvc := service.NewHolidayService()
@@ -85,7 +63,6 @@ func main() {
 
 	// 4. 啟動 gRPC 服務器（在背景 goroutine）
 	go func() {
-		grpcPort := getEnvWithFallback("LUNAR_GRPC_PORT", "GRPC_PORT")
 		lis, err := net.Listen("tcp", ":"+grpcPort)
 		if err != nil {
 			log.Fatalf("Failed to listen gRPC: %v", err)
@@ -102,9 +79,8 @@ func main() {
 	}()
 
 	// 5. 啟動 REST HTTP 服務
-	port := getEnvWithFallback("LUNAR_REST_PORT", "REST_PORT")
-	log.Printf("Lunar-Zenith REST API starts on :%s", port)
-	if err := r.Run(":" + port); err != nil {
+	log.Printf("Lunar-Zenith REST API starts on :%s", restPort)
+	if err := r.Run(":" + restPort); err != nil {
 		log.Fatal("Failed to run server: ", err)
 	}
 }

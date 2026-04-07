@@ -33,4 +33,4 @@
 ## 5. 數據來源與維護 (Data & Maintenance)
 - **假期來源**: 行政院人事行政總處公開資料 (DATA.GOV.TW)。
 - **更新機制**: 透過外部外掛式 JSON 定義，支持 Zero-Downtime 年度更新。
-- **契約同步**: 所有新增欄位必須先更新 `contracts/openapi/lunar-zenith.yaml` 與 `api/v1/lunar.proto`，再同步 REST/gRPC 實作與測試。
+- **契約同步**: 所有新增欄位必須先更新 `contracts/openapi/lunar-zenith.yaml` 與 `proto/lunar.proto`，再同步 REST/gRPC 實作與測試。

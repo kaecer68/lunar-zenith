@@ -57,8 +57,9 @@ go build -o bin/server ./cmd/server/main.go
 ### 2. 啟動服務
 ```bash
 make dev
+bash -c 'set -a; . ./.env.ports; set +a; echo "REST=http://localhost:${LUNAR_REST_PORT} gRPC=:${LUNAR_GRPC_PORT}"'
 ```
-預設服務將開啟於 `http://localhost:8080`。
+服務會使用 `destiny-contracts/runtime/ports.env` 同步出的契約 port 啟動。
 
 > `make dev` 會先同步 `contracts/runtime/ports.env` 到本地 `.env.ports`，
 > 再以契約 port 啟動服務（REST/gRPC）。
@@ -78,7 +79,7 @@ make dev-clean
 > PR/CI pipeline 會固定執行 `make verify-contracts` 作為 gate，任何未同步 `.env.ports` 的變更都會被拒絕；此檔案僅能由 `scripts/sync-contracts.sh` 生成，請勿手動修改。
 
 ### 3. 使用網頁介面
-打開瀏覽器訪問 `http://localhost:8080`，即可使用圖形化查詢介面：
+先執行 `make sync-contracts`，再依 `.env.ports` 內的 `LUNAR_REST_PORT` 訪問 `http://localhost:$LUNAR_REST_PORT`，即可使用圖形化查詢介面：
 - 選擇日期查看完整曆法資訊
 - 查看農曆、干支、節氣、宜忌、吉神方位
 - 使用方向鍵快速切換日期
@@ -87,7 +88,7 @@ make dev-clean
 ### 4. 調用 API 示例
 獲取指定日期的完整曆法大禮包：
 ```bash
-curl "http://localhost:8080/v1/calendar?date=2024-02-10"
+bash -c 'set -a; . ./.env.ports; set +a; curl "http://localhost:${LUNAR_REST_PORT}/v1/calendar?date=2024-02-10"'
 ```
 
 ### 4.1 主要 API 欄位（v1.5.0）
@@ -99,12 +100,12 @@ curl "http://localhost:8080/v1/calendar?date=2024-02-10"
 
 ## 🔁 契約同步與維護
 
-- OpenAPI 契約：`contracts/openapi/lunar-zenith.yaml`
-- gRPC 契約：`api/v1/lunar.proto`
+- OpenAPI 契約：`../destiny-contracts/openapi/lunar-zenith.yaml`
+- gRPC 契約：`proto/lunar.proto`
 - 每次新增欄位後請同步：
   1. 更新契約（OpenAPI + proto）
   2. 更新 `internal/service/rest_handler.go` 與 `internal/service/grpc_server.go`
-  3. 重新生成 `api/v1/*.pb.go`
+  3. 重新生成 `gen/*.pb.go`
   4. 執行 `make verify-contracts` 與 `go test ./...`
 
 ---
