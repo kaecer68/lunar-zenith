@@ -681,6 +681,12 @@ const SOLAR_TERMS_INFO = {
   '冬至':'晝最短夜最長','小寒':'氣候開始寒冷','大寒':'一年中最冷時期',
   '立春':'春季開始','雨水':'降雨開始','驚蟄':'蟄蟲驚醒',
 };
+const SOLAR_TERMS_ORDER = [
+  '春分','清明','穀雨','立夏','小滿','芒種',
+  '夏至','小暑','大暑','立秋','處暑','白露',
+  '秋分','寒露','霜降','立冬','小雪','大雪',
+  '冬至','小寒','大寒','立春','雨水','驚蟄',
+];
 
 // ── State ──────────────────────────────────
 let currentDate = new Date();
@@ -709,6 +715,18 @@ function getMoonPhaseInfo(elongation) {
     if (e < p.max || p.max === 360) return {...p, elongation: e};
   }
   return PHASE_NAMES[PHASE_NAMES.length-1];
+}
+
+function getSolarTermPeriod(index) {
+  if (!Number.isInteger(index) || index < 0 || index >= SOLAR_TERMS_ORDER.length) {
+    return '─';
+  }
+  const current = SOLAR_TERMS_ORDER[index];
+  const next = SOLAR_TERMS_ORDER[(index + 1) % SOLAR_TERMS_ORDER.length];
+  const startDeg = index * 15;
+  const endDeg = ((index + 1) * 15) % 360;
+  const endText = endDeg === 0 ? '360°/0°' : `${endDeg}°`;
+  return `${current} → ${next}（${startDeg}° ~ ${endText}）`;
 }
 
 // ── Pillar display ─────────────────────────
@@ -822,7 +840,15 @@ function renderData(d, data) {
   const wd = WEEKDAYS[new Date(d + 'T00:00:00').getDay()];
   const lunar = data.lunar || {};
   const pillars = data.pillars || {};
-  const st = data.solar_term || {};
+  // REST 回應是 snake_case: solar_term (string) + solar_term_detail (object)
+  const stDetail = (data.solar_term_detail && typeof data.solar_term_detail === 'object')
+    ? data.solar_term_detail
+    : {};
+  const st = {
+    Name: (typeof data.solar_term === 'string' && data.solar_term) ? data.solar_term : (stDetail.name || ''),
+    Index: Number.isInteger(stDetail.index) ? stDetail.index : -1,
+    Longitude: (typeof stDetail.longitude === 'number') ? stDetail.longitude : 0,
+  };
   const dirs = data.directions || {};
   const shensha = data.shen_sha || [];
   const mansion = data.mansion || {};
@@ -869,7 +895,8 @@ function renderData(d, data) {
 
   // Solar term info
   const stDesc = SOLAR_TERMS_INFO[st.Name] || '';
-  const stIdx = st.Index !== undefined ? st.Index + 1 : '?';
+  const stIdx = (Number.isInteger(st.Index) && st.Index >= 0) ? st.Index + 1 : '?';
+  const stPeriod = getSolarTermPeriod(st.Index);
 
   // Holiday
   const hol = data.holiday_info || {};
@@ -991,6 +1018,10 @@ ${(hol.name || chinaHol.name) ? `
     <span class="solar-term-idx">第 ${stIdx} 節氣</span>
   </div>
   ${stDesc ? `<div style="font-size:.78rem;color:var(--text-dim);margin-bottom:10px;padding:0 2px">${stDesc}</div>` : ''}
+  <div class="info-row">
+    <span class="info-label">當前節氣期間</span>
+    <span class="info-value">${stPeriod}</span>
+  </div>
   <div class="info-row">
     <span class="info-label">儒略日 (JD)</span>
     <span class="info-value mono">${data.julian_day ? data.julian_day.toFixed(5) : '─'}</span>
