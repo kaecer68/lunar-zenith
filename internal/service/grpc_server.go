@@ -26,16 +26,9 @@ func NewGrpcServer(agg *Aggregator) *GrpcServer {
 // GetCalendar 獲取完整曆法數據（gRPC 實現）
 func (s *GrpcServer) GetCalendar(ctx context.Context, req *lunarv1.GetCalendarRequest) (*lunarv1.GetCalendarResponse, error) {
 	// 1. 解析日期
-	var t time.Time
-	var err error
-
-	if req.Date == "" {
-		t = time.Now()
-	} else {
-		t, err = time.Parse("2006-01-02", req.Date)
-		if err != nil {
-			return nil, err
-		}
+	t, err := resolveCalendarQueryTime(req.Date)
+	if err != nil {
+		return nil, err
 	}
 
 	// 2. 獲取曆法數據

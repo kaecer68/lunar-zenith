@@ -2,7 +2,6 @@ package service
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -81,17 +80,10 @@ func (h *RestHandler) RegisterRoutes(r *gin.Engine) {
 // Query: ?date=2024-03-14
 func (h *RestHandler) GetCalendar(c *gin.Context) {
 	dateStr := c.Query("date")
-	var t time.Time
-	var err error
-
-	if dateStr == "" {
-		t = time.Now()
-	} else {
-		t, err = time.Parse("2006-01-02", dateStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format, use YYYY-MM-DD"})
-			return
-		}
+	t, err := resolveCalendarQueryTime(dateStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format, use YYYY-MM-DD"})
+		return
 	}
 
 	res := h.Aggregator.GetCalendar(t)
