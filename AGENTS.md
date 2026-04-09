@@ -5,13 +5,24 @@
 ## Scope
 
 - Root defaults apply across the repo.
-- Area-specific overrides live in `pkg/celestial/AGENTS.md`, `pkg/zodiac/AGENTS.md`, `internal/service/AGENTS.md`, and `contracts/AGENTS.md`.
-- Link to detailed docs instead of copying them: see `README.md` for product and quick start, `PRD.md` for scope, `SKILLS.md` for calendar/astronomy domain knowledge, and `contracts/README.md` for contract workflow.
+- Area-specific overrides live in `pkg/celestial/AGENTS.md`, `pkg/zodiac/AGENTS.md`, `internal/service/AGENTS.md`, `contracts/AGENTS.md`, and `contracts/openapi/AGENTS.md`.
+- `contracts/.github/copilot-instructions.md` defines additional contract-workflow defaults inside the `contracts/` subtree.
+
+## Documentation Map
+
+- Link to detailed docs instead of copying them.
+- `README.md`: product overview, quick start, API usage examples.
+- `PRD.md`: product scope and release evolution.
+- `SKILLS.md`: domain rules and astronomy/calendar background.
+- `contracts/README.md`: contract-first workflow and contract sync responsibilities.
 
 ## Build And Test
 
-- Use `make sync-contracts` before `make dev` whenever port contracts may have changed.
-- Main validation commands: `make test`, `make vet`, `make build`, `make verify-all`.
+- Preferred local sequence:
+	1. `make sync-contracts`
+	2. `make dev`
+- Validation commands: `make test`, `make vet`, `make build`, `make verify-all`.
+- `make verify-all` is the main integration gate (`verify-contracts` + `test` + `vet` + `build`).
 - `make dev` syncs contracts, loads `.env.ports`, and runs `cmd/server/main.go`.
 - `make dev-clean` is recovery-only for stale listeners.
 - The Makefile runs Go commands with `CGO_LDFLAGS='-Wl,-w'`; keep parity with that environment when reproducing build or test behavior manually.
@@ -34,7 +45,7 @@
 - Use Traditional Chinese for calendar-domain names and user-facing cultural labels.
 - Use `float64` for astronomical calculations.
 - Wrap errors with context and return errors instead of panicking outside `cmd/`.
-- For solar and lunar calculations, use JDE/Delta-T corrected time where required; do not use UT directly for astronomical position calculations.
+- For solar and lunar calculations, use JDE/Delta-T corrected time where required (`JDE = JD + DeltaT/86400`); do not use UT directly for astronomical position calculations.
 - Treat leap-month handling as a known risk area in lunar-calendar work; validate leap-month years explicitly and consult `pkg/zodiac/AGENTS.md` before making correctness claims for those cases.
 
 ## Testing
@@ -42,6 +53,14 @@
 - Prefer focused package tests while iterating, then finish with the narrowest relevant `make` or `go test` validation.
 - Follow existing table-driven test style and use `t.Errorf()` for non-fatal case reporting.
 - When changing contracts or transport layers, verify both REST/gRPC code paths and contract sync behavior.
+- For leap-month or calendar-boundary changes, explicitly run `pkg/zodiac/lunar_engine_leap_test.go` and `pkg/zodiac/lunar_engine_edge_test.go`.
+
+## Common Pitfalls
+
+- Do not run `make dev` before `make sync-contracts` when contract ports may be stale.
+- Do not hand-edit `.env.ports`; regenerate via `make sync-contracts`.
+- Do not claim leap-month correctness without explicit boundary-year validation.
+- If ports are already occupied, use `make dev-clean` before restarting local services.
 
 ## Where To Look
 
@@ -51,6 +70,7 @@
 - `pkg/celestial/base.go`, `pkg/celestial/solar.go`, and `pkg/celestial/moon.go` for astronomy logic.
 - `pkg/zodiac/sexagenary.go` and `pkg/zodiac/lunar_engine.go` for calendar conversions.
 - `contracts/runtime/ports.env`, `contracts/openapi/lunar-zenith.yaml`, and `proto/lunar.proto` for contract-driven changes.
+- `scripts/sync-contracts.sh` for `.env.ports` generation and contract-sync behavior.
 
 ## Anti-Patterns
 
