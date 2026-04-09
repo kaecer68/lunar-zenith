@@ -43,5 +43,6 @@ jobs:
         run: |
           cd lunar-zenith
           chmod +x scripts/sync-contracts.sh
+          cp ../destiny-contracts/runtime/ports.env .env.ports
           CONTRACT_PORTS_FILE="../destiny-contracts/runtime/ports.env" make sync-contracts
           CONTRACT_PORTS_FILE="../destiny-contracts/runtime/ports.env" make verify-contracts
