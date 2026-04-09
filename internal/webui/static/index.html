@@ -888,7 +888,11 @@ function renderData(d, data) {
   // Holiday
   const hol = data.holiday_info || {};
   const chinaHol = data.china_holiday_info || {};
-  const lunarFestivals = data.lunar_festivals || [];
+  const lunarFestivals = (data.lunar_festivals || []).map(f => ({
+    name: f?.name ?? f?.Name ?? '',
+    type: f?.type ?? f?.Type ?? '',
+    description: f?.description ?? f?.Description ?? '',
+  }));
 
   // Year label
   const yearLabel = data.taoist ? data.taoist.replace('道曆 ','').replace(' 年','') + ' 道曆' : '';
@@ -917,12 +921,12 @@ function renderData(d, data) {
         <div style="display:flex;flex-wrap:wrap;gap:6px">
           ${lunarFestivals.map(f => `
             <div style="background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;display:flex;align-items:center;gap:6px">
-              <span style="font-size:.85rem;font-weight:700;color:${f.Type==='道教'?'var(--accent)':f.Type==='佛教'?'var(--purple)':'var(--teal)'}">${f.Name}</span>
-              <span style="font-size:.65rem;color:var(--text-dim);padding:1px 6px;background:var(--bg);border-radius:10px">${f.Type}</span>
+              <span style="font-size:.85rem;font-weight:700;color:${f.type==='道教'?'var(--accent)':f.type==='佛教'?'var(--purple)':'var(--teal)'}">${f.name || '未命名節日'}</span>
+              <span style="font-size:.65rem;color:var(--text-dim);padding:1px 6px;background:var(--bg);border-radius:10px">${f.type || '民俗'}</span>
             </div>
           `).join('')}
         </div>
-        ${lunarFestivals.length === 1 ? `<div style="font-size:.75rem;color:var(--text-dim);margin-top:6px;line-height:1.5">${lunarFestivals[0].Description}</div>` : ''}
+        ${lunarFestivals.length === 1 ? `<div style="font-size:.75rem;color:var(--text-dim);margin-top:6px;line-height:1.5">${lunarFestivals[0].description || '—'}</div>` : ''}
       </div>` : ''}
     </div>
   </div>
@@ -1202,10 +1206,10 @@ ${(hol.name || chinaHol.name) ? `
       ${lunarFestivals.map(f => `
         <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-            <span style="font-size:1rem;font-weight:800;color:${f.Type==='道教'?'var(--accent)':f.Type==='佛教'?'var(--purple)':'var(--teal)'}">${f.Name}</span>
-            <span style="font-size:.65rem;color:var(--text-dim);padding:2px 8px;background:var(--bg);border-radius:10px;border:1px solid var(--border)">${f.Type}</span>
+            <span style="font-size:1rem;font-weight:800;color:${f.type==='道教'?'var(--accent)':f.type==='佛教'?'var(--purple)':'var(--teal)'}">${f.name || '未命名節日'}</span>
+            <span style="font-size:.65rem;color:var(--text-dim);padding:2px 8px;background:var(--bg);border-radius:10px;border:1px solid var(--border)">${f.type || '民俗'}</span>
           </div>
-          <div style="font-size:.78rem;color:var(--text-dim);line-height:1.5">${f.Description}</div>
+          <div style="font-size:.78rem;color:var(--text-dim);line-height:1.5">${f.description || '—'}</div>
         </div>
       `).join('')}
     </div>
