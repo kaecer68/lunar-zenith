@@ -1,0 +1,19 @@
+name: Docs Consistency
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  docs-consistency:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Verify docs consistency anchors
+        run: |
+          chmod +x scripts/check-docs-consistency.sh
+          scripts/check-docs-consistency.sh
