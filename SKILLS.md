@@ -1,8 +1,8 @@
 # Lunar-Zenith Skills Map
 
 **Purpose**: 本文件提供 AI 助手快速了解黃曆計算系統與本專案實現的知識地圖。
-**Version**: 1.1.0  
-**Updated**: 2026-04-08  
+**Version**: 1.2.0  
+**Updated**: 2026-04-09  
 **For**: AI Assistants working on lunar-zenith project
 
 ---
@@ -508,6 +508,25 @@ PATH="$PATH:$(go env GOPATH)/bin" protoc \
 - 檢查 REST JSON 與 gRPC message 欄位集一致（如 `holiday_info`、`china_holiday_info`、`western_astro`、`aspects`）。
 - 新增欄位後，需同步更新 README / SKILLS 等維運文檔。
 
+## 6.8 UI 與資料鍵名一致性（避免 undefined）
+
+### 6.8.1 單一 UI 來源
+
+- 目前唯一前端來源：`internal/webui/static/index.html`
+- 由 `internal/webui/webui.go` 以 `go:embed` 提供給 `cmd/server/main.go` 的 `/ui`
+- 不應再新增或維護第二份獨立 UI 頁面（避免修改錯檔導致行為分裂）
+
+### 6.8.2 REST JSON 鍵名規則
+
+- REST 回應使用 `snake_case`
+- `lunar_festivals` 內鍵名為：`name`, `type`, `description`
+- 前端若使用 `Name/Type/Description`（大寫）會顯示 `undefined`
+
+### 6.8.3 前端容錯建議
+
+- 在渲染前先做鍵名正規化（`name/type/description` 為主，必要時 fallback 大寫）
+- 顯示層對空值提供保底字串（例如 `—`）
+
 ---
 
 ## 7. 代碼架構總覽 (Code Architecture)
@@ -524,6 +543,8 @@ PATH="$PATH:$(go env GOPATH)/bin" protoc \
 │  internal/service/aggregator.go - 組合所有數據            │
 │  internal/service/almanac.go - 黃曆宜忌計算               │
 │  internal/service/holiday.go - 假期數據                   │
+│  internal/webui/static/index.html - 嵌入式前端單一來源    │
+│  internal/webui/webui.go - go:embed 靜態資源提供          │
 ├─────────────────────────────────────────────────────────┤
 │  Zodiac Module (Cultural Calendar)                       │
 │  pkg/zodiac/sexagenary.go - 干支計算                     │
@@ -589,11 +610,12 @@ GetClashSha(dayBranch) - 沖煞
 // 聚合器
 Aggregator {
     HolidaySvc: *HolidayService
+  ChinaHolidaySvc: *HolidayService
     LunarEng: *LunarEngine
 }
 
 // 核心函數
-NewAggregator(holidaySvc) - 創建聚合器
+NewAggregator(holidaySvc, chinaHolidaySvc) - 創建聚合器
 GetCalendar(t) - 獲取完整曆法數據
 CalculateAlmanac(officer, dayStem) - 計算宜忌
 GetDeityDirections(dayStem) - 吉神方位
@@ -624,11 +646,13 @@ GetDeityDirections(dayStem) - 吉神方位
 
 ### 8.3 時區處理
 
-**問題**: 系統固定使用 UTC+8 (東八區)
+**現況（已落地）**:
+- 對 `date=YYYY-MM-DD` 查詢，系統以 `Asia/Taipei` 當地 **12:00** 作為該日採樣時刻
+- 目的是降低節氣交接日「00:00 採樣」造成的跨日偏移
 
-**影響**: 其他時區用戶可能看到錯誤日期
-
-**解決方向**: 支援時區參數輸入
+**影響**:
+- 台灣民用日期語義下的節氣落日更穩定
+- 若需跨時區使用，仍建議未來提供顯式時區參數
 
 ### 8.4 曆法改革
 
