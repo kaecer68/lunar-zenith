@@ -681,14 +681,6 @@ const SOLAR_TERMS_INFO = {
   '冬至':'晝最短夜最長','小寒':'氣候開始寒冷','大寒':'一年中最冷時期',
   '立春':'春季開始','雨水':'降雨開始','驚蟄':'蟄蟲驚醒',
 };
-const SOLAR_TERMS_ORDER = [
-  '春分','清明','穀雨','立夏','小滿','芒種',
-  '夏至','小暑','大暑','立秋','處暑','白露',
-  '秋分','寒露','霜降','立冬','小雪','大雪',
-  '冬至','小寒','大寒','立春','雨水','驚蟄',
-];
-
-const MAX_SOLAR_TERM_SCAN_DAYS = 20;
 
 // ── State ──────────────────────────────────
 let currentDate = new Date();
@@ -719,67 +711,11 @@ function getMoonPhaseInfo(elongation) {
   return PHASE_NAMES[PHASE_NAMES.length-1];
 }
 
-function getSolarTermPeriod(index) {
-  if (!Number.isInteger(index) || index < 0 || index >= SOLAR_TERMS_ORDER.length) {
-    return '─';
-  }
-  const current = SOLAR_TERMS_ORDER[index];
-  const next = SOLAR_TERMS_ORDER[(index + 1) % SOLAR_TERMS_ORDER.length];
-  const startDeg = index * 15;
-  const endDeg = ((index + 1) * 15) % 360;
-  const endText = endDeg === 0 ? '360°/0°' : `${endDeg}°`;
-  return `${current} → ${next}（${startDeg}° ~ ${endText}）`;
-}
-
-function normalizeSolarTermName(data) {
-  if (!data || typeof data !== 'object') return '';
-  if (typeof data.solar_term === 'string' && data.solar_term) return data.solar_term;
-  if (data.solar_term_detail && typeof data.solar_term_detail === 'object' && typeof data.solar_term_detail.name === 'string') {
-    return data.solar_term_detail.name;
-  }
-  return '';
-}
-
 async function getCalendarDataByDate(dateStr) {
   if (calendarCache[dateStr]) return calendarCache[dateStr];
   const data = await fetchCalendar(dateStr);
   calendarCache[dateStr] = data;
   return data;
-}
-
-async function getSolarTermDateRange(dateStr, termName) {
-  if (!termName) {
-    return { start: dateStr, end: dateStr };
-  }
-
-  let startDate = parseDate(dateStr);
-  let endDate = parseDate(dateStr);
-
-  for (let i = 0; i < MAX_SOLAR_TERM_SCAN_DAYS; i++) {
-    const prev = addDays(startDate, -1);
-    const prevStr = toDateStr(prev);
-    const prevData = await getCalendarDataByDate(prevStr);
-    if (normalizeSolarTermName(prevData) !== termName) break;
-    startDate = prev;
-  }
-
-  for (let i = 0; i < MAX_SOLAR_TERM_SCAN_DAYS; i++) {
-    const next = addDays(endDate, 1);
-    const nextStr = toDateStr(next);
-    const nextData = await getCalendarDataByDate(nextStr);
-    if (normalizeSolarTermName(nextData) !== termName) break;
-    endDate = next;
-  }
-
-  return { start: toDateStr(startDate), end: toDateStr(endDate) };
-}
-
-async function buildSolarTermDisplayText(dateStr, data) {
-  const termName = normalizeSolarTermName(data);
-  if (!termName) return '─';
-
-  const range = await getSolarTermDateRange(dateStr, termName);
-  return `${termName}（${range.start}～${range.end}）`;
 }
 
 // ── Pillar display ─────────────────────────
@@ -889,7 +825,7 @@ function miniCalHTML(year, month, selectedDate, data) {
 }
 
 // ── Render ─────────────────────────────────
-function renderData(d, data, solarTermDisplayText) {
+function renderData(d, data) {
   const wd = WEEKDAYS[new Date(d + 'T00:00:00').getDay()];
   const lunar = data.lunar || {};
   const pillars = data.pillars || {};
@@ -948,7 +884,6 @@ function renderData(d, data, solarTermDisplayText) {
 
   // Solar term info
   const stDesc = SOLAR_TERMS_INFO[st.Name] || '';
-  const stPeriod = solarTermDisplayText || getSolarTermPeriod(st.Index);
 
   // Holiday
   const hol = data.holiday_info || {};
@@ -1067,13 +1002,9 @@ ${(hol.name || chinaHol.name) ? `
       <div class="solar-term-name">${st.Name || '─'}</div>
       <div class="solar-term-lon">☀ 太陽黃經 ${typeof solarLon === 'number' ? solarLon.toFixed(4)+'°' : '─'}</div>
     </div>
-    <span class="solar-term-idx">${stPeriod}</span>
+    <span class="solar-term-idx">當前節氣</span>
   </div>
   ${stDesc ? `<div style="font-size:.78rem;color:var(--text-dim);margin-bottom:10px;padding:0 2px">${stDesc}</div>` : ''}
-  <div class="info-row">
-    <span class="info-label">當前節氣期間</span>
-    <span class="info-value">${stPeriod}</span>
-  </div>
   <div class="info-row">
     <span class="info-label">儒略日 (JD)</span>
     <span class="info-value mono">${data.julian_day ? data.julian_day.toFixed(5) : '─'}</span>
@@ -1487,9 +1418,8 @@ async function loadDate(dateStr) {
   $('datePicker').value = dateStr;
   try {
     const data = await getCalendarDataByDate(dateStr);
-    const solarTermDisplayText = await buildSolarTermDisplayText(dateStr, data);
     currentDate = parseDate(dateStr);
-    $('app').innerHTML = renderData(dateStr, data, solarTermDisplayText);
+    $('app').innerHTML = renderData(dateStr, data);
   } catch(e) {
     $('app').innerHTML = `<div class="error-msg">載入失敗：${e.message}<br><br>請確認服務是否正在運行</div>`;
   }
