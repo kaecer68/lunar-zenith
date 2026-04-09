@@ -10,26 +10,37 @@ jobs:
   verify-contracts:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout lunar-zenith
         uses: actions/checkout@v5
         with:
           persist-credentials: false
+          path: lunar-zenith
 
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version-file: go.mod
+          go-version-file: lunar-zenith/go.mod
 
-      - name: Setup contracts
+      - name: Checkout destiny-contracts (sibling repo)
         uses: actions/checkout@v5
         with:
           repository: kaecer68/destiny-contracts
           ref: main
-          token: ${{ secrets.DESTINY_CONTRACTS_TOKEN }}
+          token: ${{ secrets.PAT_DESTINY }}
           path: destiny-contracts
+          persist-credentials: false
+
+      - name: Checkout destiny-cloud (sibling repo)
+        uses: actions/checkout@v5
+        with:
+          repository: kaecer68/destiny-cloud
+          ref: main
+          token: ${{ secrets.PAT_DESTINY }}
+          path: destiny-cloud
           persist-credentials: false
 
       - name: Verify contract sync
         run: |
+          cd lunar-zenith
           chmod +x scripts/sync-contracts.sh
-          CONTRACT_PORTS_FILE="$GITHUB_WORKSPACE/destiny-contracts/runtime/ports.env" make verify-contracts
+          CONTRACT_PORTS_FILE="../destiny-contracts/runtime/ports.env" make verify-contracts
