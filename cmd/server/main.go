@@ -43,6 +43,14 @@ func main() {
 
 	// 2. 設置 Gin (REST API)
 	r := gin.Default()
+	r.Use(func(c *gin.Context) {
+		if len(c.Request.URL.Path) >= 3 && c.Request.URL.Path[:3] == "/ui" {
+			c.Header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+			c.Header("Pragma", "no-cache")
+			c.Header("Expires", "0")
+		}
+		c.Next()
+	})
 
 	// 3. 靜態前端 (嵌入 binary)
 	r.StaticFS("/ui", webui.FS())

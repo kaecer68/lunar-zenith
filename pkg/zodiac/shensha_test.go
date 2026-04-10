@@ -4,6 +4,29 @@ import (
 	"testing"
 )
 
+func TestGetTwentyEightMansion_ByGregorianDate(t *testing.T) {
+	tests := []struct {
+		name     string
+		year     int
+		month    int
+		day      int
+		wantFull string
+	}{
+		{name: "2024-04-04 對應角木蛟", year: 2024, month: 4, day: 4, wantFull: "角木蛟"},
+		{name: "2025-05-05 對應心月狐", year: 2025, month: 5, day: 5, wantFull: "心月狐"},
+		{name: "2026-06-06 對應女土蝠", year: 2026, month: 6, day: 6, wantFull: "女土蝠"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := GetTwentyEightMansion(tt.year, tt.month, tt.day)
+			if got.FullName != tt.wantFull {
+				t.Errorf("GetTwentyEightMansion(%d,%d,%d)=%s; want %s", tt.year, tt.month, tt.day, got.FullName, tt.wantFull)
+			}
+		})
+	}
+}
+
 func TestGetTwelveOfficer(t *testing.T) {
 	// 寅月 (2) 碰到 寅日 (2) 應該是 「建」
 	got := GetTwelveOfficer(2, 2)
@@ -52,5 +75,74 @@ func TestGetYearShenSha(t *testing.T) {
 	}
 	if !foundTaoHua {
 		t.Error("午年桃花判定錯誤")
+	}
+}
+
+func TestGetClashSha_MainstreamDirection(t *testing.T) {
+	tests := []struct {
+		name      string
+		dayBranch int
+		wantClash string
+		wantSha   string
+	}{
+		{name: "寅日沖猴煞北", dayBranch: 2, wantClash: "沖猴", wantSha: "煞北"},
+		{name: "子日沖馬煞南", dayBranch: 0, wantClash: "沖馬", wantSha: "煞南"},
+		{name: "卯日沖雞煞西", dayBranch: 3, wantClash: "沖雞", wantSha: "煞西"},
+		{name: "酉日沖兔煞東", dayBranch: 9, wantClash: "沖兔", wantSha: "煞東"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := GetClashSha(tt.dayBranch)
+			if got.ClashZodiac != tt.wantClash {
+				t.Errorf("GetClashSha(%d) clash = %s; want %s", tt.dayBranch, got.ClashZodiac, tt.wantClash)
+			}
+			if got.ShaDirection != tt.wantSha {
+				t.Errorf("GetClashSha(%d) sha = %s; want %s", tt.dayBranch, got.ShaDirection, tt.wantSha)
+			}
+		})
+	}
+}
+
+func TestGetDailyDeityByMonthBranch(t *testing.T) {
+	tests := []struct {
+		name        string
+		monthBranch int
+		dayBranch   int
+		wantName    string
+	}{
+		{name: "丑月戌日為青龍", monthBranch: 1, dayBranch: 10, wantName: "青龍"},
+		{name: "寅月申日為天牢", monthBranch: 2, dayBranch: 8, wantName: "天牢"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := GetDailyDeityByMonthBranch(tt.monthBranch, tt.dayBranch)
+			if got.Name != tt.wantName {
+				t.Errorf("GetDailyDeityByMonthBranch(%d, %d) = %s; want %s", tt.monthBranch, tt.dayBranch, got.Name, tt.wantName)
+			}
+		})
+	}
+}
+
+func TestGetFetalGodByDayPillar(t *testing.T) {
+	tests := []struct {
+		name      string
+		dayStem   int
+		dayBranch int
+		wantPos   string
+	}{
+		{name: "戊戌日房床棲房內南", dayStem: 4, dayBranch: 10, wantPos: "房床棲房內南"},
+		{name: "己酉日占大門外東北", dayStem: 5, dayBranch: 9, wantPos: "占大門外東北"},
+		{name: "辛亥日廚灶床外東北", dayStem: 7, dayBranch: 11, wantPos: "廚灶床外東北"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := GetFetalGodByDayPillar(tt.dayStem, tt.dayBranch)
+			if got.Position != tt.wantPos {
+				t.Errorf("GetFetalGodByDayPillar(%d,%d)=%s; want %s", tt.dayStem, tt.dayBranch, got.Position, tt.wantPos)
+			}
+		})
 	}
 }

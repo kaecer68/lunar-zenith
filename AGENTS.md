@@ -47,6 +47,7 @@
 - Wrap errors with context and return errors instead of panicking outside `cmd/`.
 - For solar and lunar calculations, use JDE/Delta-T corrected time where required (`JDE = JD + DeltaT/86400`); do not use UT directly for astronomical position calculations.
 - Treat leap-month handling as a known risk area in lunar-calendar work; validate leap-month years explicitly and consult `pkg/zodiac/AGENTS.md` before making correctness claims for those cases.
+- Do not hard-code year-specific lunar/leap fixes in production logic; year tables are for verification fixtures only.
 
 ## Testing
 
@@ -54,12 +55,14 @@
 - Follow existing table-driven test style and use `t.Errorf()` for non-fatal case reporting.
 - When changing contracts or transport layers, verify both REST/gRPC code paths and contract sync behavior.
 - For leap-month or calendar-boundary changes, explicitly run `pkg/zodiac/lunar_engine_leap_test.go` and `pkg/zodiac/lunar_engine_edge_test.go`.
+- For leap-month or solar-term boundary changes that affect API output, also run `internal/service/lunar_leap_api_test.go` and finish with `make verify-all`.
 
 ## Common Pitfalls
 
 - Do not run `make dev` before `make sync-contracts` when contract ports may be stale.
 - Do not hand-edit `.env.ports`; regenerate via `make sync-contracts`.
 - Do not claim leap-month correctness without explicit boundary-year validation.
+- Do not claim leap-month/solar-term correctness unless boundary fixtures are hard assertions (not skip/todo) and cross-layer tests pass.
 - If ports are already occupied, use `make dev-clean` before restarting local services.
 
 ## Where To Look

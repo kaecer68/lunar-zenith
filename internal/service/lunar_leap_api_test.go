@@ -75,31 +75,86 @@ func TestCalendarAPI_LeapMonthFieldsStayAligned(t *testing.T) {
 }
 
 func TestCalendarAPI_LeapMonthRiskYearFixtures(t *testing.T) {
+	agg := NewAggregator(nil, nil)
+	grpcServer := NewGrpcServer(agg)
+
 	cases := []struct {
-		name string
-		date time.Time
-		note string
+		name              string
+		date              time.Time
+		wantMonth         int
+		wantDay           int
+		wantLeap          bool
+		wantFestivalNames []string
 	}{
 		{
-			name: "2023-risk-year-api-fixture",
-			date: time.Date(2023, 8, 16, 12, 0, 0, 0, time.UTC),
-			note: "assert authoritative month/day/isLeap across aggregator, REST, gRPC, and any affected festival output",
+			name:              "2023-leap-2nd-day1-api-fixture",
+			date:              time.Date(2023, 3, 22, 12, 0, 0, 0, time.UTC),
+			wantMonth:         2,
+			wantDay:           1,
+			wantLeap:          true,
+			wantFestivalNames: []string{"一殿秦廣王聖誕"},
 		},
 		{
-			name: "2025-risk-year-api-fixture",
-			date: time.Date(2025, 8, 1, 12, 0, 0, 0, time.UTC),
-			note: "fill after confirming a trusted official or astronomical source for leap-month output",
+			name:              "2025-leap-6th-day1-api-fixture",
+			date:              time.Date(2025, 7, 25, 12, 0, 0, 0, time.UTC),
+			wantMonth:         6,
+			wantDay:           1,
+			wantLeap:          true,
+			wantFestivalNames: []string{"半年節"},
 		},
 		{
-			name: "2033-complex-year-api-fixture",
-			date: time.Date(2033, 12, 22, 12, 0, 0, 0, time.UTC),
-			note: "this year is known to be tricky; do not replace this skip with guessed values",
+			name:      "2033-leap-11th-day1-api-fixture",
+			date:      time.Date(2033, 12, 22, 12, 0, 0, 0, time.UTC),
+			wantMonth: 11,
+			wantDay:   1,
+			wantLeap:  true,
 		},
 	}
 
 	for _, tt := range cases {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Skipf("TODO: add verified service/API expectations for %s; %s", tt.date.Format("2006-01-02"), tt.note)
+			queryDate := time.Date(tt.date.Year(), tt.date.Month(), tt.date.Day(), 0, 0, 0, 0, time.UTC)
+			aggRes := agg.GetCalendar(queryDate)
+			restRes := toCalendarRESTResponse(aggRes)
+
+			grpcRes, err := grpcServer.GetCalendar(context.Background(), &lunarv1.GetCalendarRequest{Date: queryDate.Format("2006-01-02")})
+			if err != nil {
+				t.Fatalf("GetCalendar() error = %v", err)
+			}
+
+			if aggRes.Lunar.Month != tt.wantMonth || aggRes.Lunar.Day != tt.wantDay || aggRes.Lunar.IsLeap != tt.wantLeap {
+				t.Errorf("aggregator date %s: got month=%d day=%d leap=%v; want month=%d day=%d leap=%v",
+					tt.date.Format("2006-01-02"), aggRes.Lunar.Month, aggRes.Lunar.Day, aggRes.Lunar.IsLeap,
+					tt.wantMonth, tt.wantDay, tt.wantLeap)
+			}
+
+			if restRes.Lunar.Month != tt.wantMonth || restRes.Lunar.Day != tt.wantDay || restRes.Lunar.IsLeap != tt.wantLeap {
+				t.Errorf("REST date %s: got month=%d day=%d leap=%v; want month=%d day=%d leap=%v",
+					tt.date.Format("2006-01-02"), restRes.Lunar.Month, restRes.Lunar.Day, restRes.Lunar.IsLeap,
+					tt.wantMonth, tt.wantDay, tt.wantLeap)
+			}
+
+			if grpcRes.Lunar == nil {
+				t.Fatalf("gRPC lunar payload should not be nil for %s", tt.date.Format("2006-01-02"))
+			}
+			if int(grpcRes.Lunar.Month) != tt.wantMonth || int(grpcRes.Lunar.Day) != tt.wantDay || grpcRes.Lunar.IsLeap != tt.wantLeap {
+				t.Errorf("gRPC date %s: got month=%d day=%d leap=%v; want month=%d day=%d leap=%v",
+					tt.date.Format("2006-01-02"), grpcRes.Lunar.Month, grpcRes.Lunar.Day, grpcRes.Lunar.IsLeap,
+					tt.wantMonth, tt.wantDay, tt.wantLeap)
+			}
+
+			if len(tt.wantFestivalNames) > 0 {
+				festNames := make(map[string]bool, len(aggRes.LunarFestivals))
+				for _, f := range aggRes.LunarFestivals {
+					festNames[f.Name] = true
+				}
+				for _, want := range tt.wantFestivalNames {
+					if !festNames[want] {
+						t.Errorf("date %s: expected festival %q in aggregator lunar_festivals, got %v",
+							tt.date.Format("2006-01-02"), want, aggRes.LunarFestivals)
+					}
+				}
+			}
 		})
 	}
 }

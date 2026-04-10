@@ -90,6 +90,8 @@ func NewAggregator(h *HolidayService, chinaH *HolidayService) *Aggregator {
 // GetCalendar 獲取指定時間的完整曆法數據包
 func (a *Aggregator) GetCalendar(t time.Time) CalendarResponse {
 	pt := celestial.NewPrecisionTime(t)
+	monthSample := time.Date(t.Year(), t.Month(), t.Day(), 23, 0, 0, 0, t.Location())
+	monthPillars := zodiac.GetAstrologicalPillar(celestial.NewPrecisionTime(monthSample))
 
 	// 1. 獲取四柱
 	pillars := zodiac.GetAstrologicalPillar(pt)
@@ -107,22 +109,21 @@ func (a *Aggregator) GetCalendar(t time.Time) CalendarResponse {
 	st := celestial.GetSolarTerm(pt.JDE)
 
 	// 5. 神煞
-	officer := zodiac.GetTwelveOfficer(pillars.Month.BranchIndex, pillars.Day.BranchIndex)
+	officer := zodiac.GetTwelveOfficer(monthPillars.Month.BranchIndex, pillars.Day.BranchIndex)
 	ss := zodiac.GetYearShenSha(pillars.Year.BranchIndex)
 
-	// 6. 黃曆宜忌 (v1.3.0 新增) - 基於建除十二神和日干
-	suitable, avoidable, directions := CalculateAlmanac(officer, pillars.Day.StemIndex)
+	// 6. 黃曆宜忌（主流對齊 v1）
+	almanacCtx := MainstreamAlmanacContextV2(monthPillars.Month.BranchIndex, pillars.Day.BranchIndex)
+	suitable, avoidable, directions := CalculateAlmanacWithContext(officer, pillars.Day.StemIndex, almanacCtx)
 
 	// 7. 精密月球位置
 	moonLon := celestial.MoonLongitude(pt.JDE)
 	moonElong := celestial.MoonPhase(pt.JDE)
 
 	// 8. 擴充神煞 (二十八星宿、值神、胎神、沖煞)
-	// 計算星宿需要節氣月份 (寅月起算 1-12)
-	solarMonth := zodiac.GetSolarMonth(st.Longitude)
-	mansion := zodiac.GetTwentyEightMansion(solarMonth, pillars.Day.StemIndex, pillars.Day.BranchIndex)
-	dailyDeity := zodiac.GetDailyDeity(pillars.Day.BranchIndex)
-	fetalGod := zodiac.GetFetalGod(pillars.Day.StemIndex)
+	mansion := zodiac.GetTwentyEightMansion(t.Year(), int(t.Month()), t.Day())
+	dailyDeity := zodiac.GetDailyDeityByMonthBranch(monthPillars.Month.BranchIndex, pillars.Day.BranchIndex)
+	fetalGod := zodiac.GetFetalGodByDayPillar(pillars.Day.StemIndex, pillars.Day.BranchIndex)
 	clashSha := zodiac.GetClashSha(pillars.Day.BranchIndex)
 
 	// 9. 檢查農曆節日

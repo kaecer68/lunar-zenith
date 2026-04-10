@@ -18,19 +18,31 @@ func TestLunarEngine_HistoricalEdgeFixtures(t *testing.T) {
 	engine := &LunarEngine{}
 
 	cases := []struct {
-		name string
-		date time.Time
-		note string
+		name      string
+		date      time.Time
+		note      string
+		wantMonth int
+		wantDay   int
+		wantLeap  bool
+		strict    bool
 	}{
 		{
-			name: "2001-cny-boundary",
-			date: time.Date(2001, 1, 24, 12, 0, 0, 0, time.UTC),
-			note: "目前輸出與授權曆書有 1 日差異，待新月/日界處理收斂後啟用",
+			name:      "2001-cny-boundary",
+			date:      time.Date(2001, 1, 24, 12, 0, 0, 0, time.UTC),
+			note:      "已修正為民用日判月起點一致案例，保留 diagnostics 供邊界回歸追蹤",
+			wantMonth: 1,
+			wantDay:   1,
+			wantLeap:  false,
+			strict:    true,
 		},
 		{
-			name: "2020-leap-4th-day1-boundary",
-			date: time.Date(2020, 5, 23, 12, 0, 0, 0, time.UTC),
-			note: "目前 IsLeap 判定與授權曆書不一致，待閏月定位精化後啟用",
+			name:      "2020-leap-4th-day1-boundary",
+			date:      time.Date(2020, 5, 23, 12, 0, 0, 0, time.UTC),
+			note:      "已修正為官方一致案例，保留 diagnostics 供邊界回歸追蹤",
+			wantMonth: 4,
+			wantDay:   1,
+			wantLeap:  true,
+			strict:    true,
 		},
 	}
 
@@ -42,7 +54,20 @@ func TestLunarEngine_HistoricalEdgeFixtures(t *testing.T) {
 			t.Logf("boundary date=%s => month=%d day=%d leap=%v", tt.date.Format("2006-01-02"), got.Month, got.Day, got.IsLeap)
 			t.Logf("diagnostics:\n%s", debugLunarInternals(pt.JD))
 
-			t.Skipf("TODO: %s；%s", tt.date.Format("2006-01-02"), tt.note)
+			if got.Month != tt.wantMonth || got.Day != tt.wantDay || got.IsLeap != tt.wantLeap {
+				if tt.strict {
+					t.Errorf("date %s: got month=%d day=%d leap=%v; want month=%d day=%d leap=%v",
+						tt.date.Format("2006-01-02"), got.Month, got.Day, got.IsLeap,
+						tt.wantMonth, tt.wantDay, tt.wantLeap)
+					return
+				}
+				t.Skipf("TODO: %s；%s", tt.date.Format("2006-01-02"), tt.note)
+				return
+			}
+
+			if !tt.strict {
+				t.Skipf("TODO: %s；%s", tt.date.Format("2006-01-02"), tt.note)
+			}
 		})
 	}
 }
@@ -52,13 +77,9 @@ func debugLunarInternals(jd float64) string {
 	deltaTSeconds := celestial.EstimateDeltaT(time.Date(year, time.Month(month), 15, 0, 0, 0, 0, time.UTC))
 	jde := jd + deltaTSeconds/86400.0
 
-	nm0 := celestial.PreviousNewMoon(jde)
-	ws := celestial.FindPreviousWinterSolstice(jde + 32)
-	nmWS := celestial.PreviousNewMoon(ws)
-	if nmWS > nm0+0.01 {
-		ws = celestial.FindPreviousWinterSolstice(nmWS - 2)
-		nmWS = celestial.FindNewMoon(ws, -1)
-	}
+	nm0 := monthStartNewMoonForCivilDay(jd, jde)
+	ws := celestial.FindPreviousWinterSolstice(nm0 - 1e-6)
+	nmWS := winterSolsticeMonthStart(ws)
 
 	leapPos, allMonths := buildLeapIndex(nmWS, ws)
 	pos := 0

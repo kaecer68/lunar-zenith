@@ -186,3 +186,26 @@ func TestChinaObservanceOverrides(t *testing.T) {
 		t.Errorf("大陸 4/4 應顯示清明節且放假, got %v, %s", isHol, name)
 	}
 }
+
+func TestTaiwanObservance_Easter(t *testing.T) {
+	s := NewHolidayService()
+
+	tests := []struct {
+		date        string
+		wantHoliday bool
+	}{
+		{date: "20240331", wantHoliday: false}, // 2024 Easter Sunday
+		{date: "20250420", wantHoliday: false}, // 2025 Easter Sunday
+		{date: "20260405", wantHoliday: true},  // 2026 Easter Sunday + Qingming
+	}
+
+	for _, tt := range tests {
+		isHol, name := s.IsHoliday(tt.date)
+		if isHol != tt.wantHoliday {
+			t.Errorf("%s holiday mismatch, got %v want %v", tt.date, isHol, tt.wantHoliday)
+		}
+		if !strings.Contains(name, "復活節") {
+			t.Errorf("%s 應包含復活節名稱, got %q", tt.date, name)
+		}
+	}
+}

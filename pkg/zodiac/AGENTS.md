@@ -29,7 +29,11 @@ pkg/zodiac/
 | 時干支 (五鼠遁) | `sexagenary.go:GetHourSexagenary()` | 子時 23:00-01:00 |
 | 農曆轉換 | `lunar_engine.go` | 已實作無中氣月定閏，先看邊界測試與 `IsLeap` 輸出 |
 | 閏月輸出 | `lunar_date.go` | `LunarDate.IsLeap` 可用；邊界年份請搭配測試驗證 |
-| 神煞計算 | `shensha.go` | 建除十二神，年支神煞 |
+| 二十八星宿 | `shensha.go:GetTwentyEightMansion()` | 公曆實際天數口徑；公式：mansionIndex = (A + 24) % 28 |
+| 胎神 (60甲子) | `shensha.go:GetFetalGodByDayPillar()` | 60甲子日柱定表；精確映射，推薦新介面 |
+| 胎神 (日干) | `shensha.go:GetFetalGod()` | 舊介面，已棄用；僅保留相容層 |
+| 建除十二神 | `shensha.go:GetTwelveOfficer()` | 月支決策，依(dayBranch - monthBranch) % 12 |
+| 沖煞 | `shensha.go:GetClashSha()` | 日支相沖 + 煞方四正位映射 |
 | 宗教年份 | `religious.go` | 佛曆 (Buddhist), 道曆 (Taoist) |
 
 ## CONVENTIONS
@@ -46,6 +50,8 @@ pkg/zodiac/
 - ❌ 忽略閏月與邊界年份驗證（尤其 2001、2020、2033 這類高風險日期）
 - ❌ 在未驗證閏月年份前，宣稱農曆日期、節日落點或 `IsLeap` 輸出對所有年份正確
 - ❌ 修改基準常量 (西元 4 年甲子，2000-01-01 戊午日)
+- ❌ 使用舊方式計算二十八星宿：基於每月起始日期 + 日支 (已廢棄；改用公曆實際天數公式)
+- ❌ 爲胎神計算使用日干單獨變量 (必須使用 60甲子日柱，即 dayStem + dayBranch 組合)
 
 ## KEY FUNCTIONS
 
@@ -64,6 +70,21 @@ GetHourSexagenary(dayStem int, hourBranch int) Sexagenary
 
 // 時支 (24 小時制轉地支)
 GetHourBranch(hour int) int
+
+// 二十八星宿 (公曆實際天數口徑)
+GetTwentyEightMansion(year, month, day int) MansionInfo
+
+// 胎神 (60甲子日柱定表，推薦使用)
+GetFetalGodByDayPillar(dayStem, dayBranch int) FetalGodInfo
+
+// 胎神 (僅日干層級，已棄用)
+GetFetalGod(dayStem int) FetalGodInfo  // Deprecated: use GetFetalGodByDayPillar()
+
+// 建除十二神
+GetTwelveOfficer(monthBranch, dayBranch int) string
+
+// 沖煞
+GetClashSha(dayBranch int) ClashShaInfo
 ```
 
 ## KNOWN LIMITATIONS

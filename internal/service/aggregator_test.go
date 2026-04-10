@@ -41,3 +41,34 @@ func TestAggregator_GetCalendar(t *testing.T) {
 	data, _ := json.MarshalIndent(res, "", "  ")
 	fmt.Printf("AGGREGATED PROOF:\n%s\n", string(data))
 }
+
+func TestAggregator_GetCalendar_OfficerAndDailyDeityParitySamples(t *testing.T) {
+	agg := NewAggregator(nil, nil)
+
+	tests := []struct {
+		date        string
+		wantOfficer string
+		wantDeity   string
+	}{
+		{date: "2024-04-04", wantOfficer: "破", wantDeity: "白虎"},
+		{date: "2025-05-05", wantOfficer: "執", wantDeity: "金匱"},
+		{date: "2026-06-06", wantOfficer: "執", wantDeity: "朱雀"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.date, func(t *testing.T) {
+			queryTime, err := resolveCalendarQueryTime(tt.date)
+			if err != nil {
+				t.Fatalf("resolveCalendarQueryTime(%s) failed: %v", tt.date, err)
+			}
+			res := agg.GetCalendar(queryTime)
+
+			if res.TwelveOfficer != tt.wantOfficer {
+				t.Errorf("%s officer = %s; want %s", tt.date, res.TwelveOfficer, tt.wantOfficer)
+			}
+			if res.DailyDeity.Name != tt.wantDeity {
+				t.Errorf("%s daily deity = %s; want %s", tt.date, res.DailyDeity.Name, tt.wantDeity)
+			}
+		})
+	}
+}

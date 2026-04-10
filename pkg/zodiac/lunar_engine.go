@@ -14,20 +14,64 @@ type LunarEngine struct{}
 // 中氣是太陽黃經為 30 的倍數的節氣（雨水=330°、春分=0°、穀雨=30°…冬至=270°、大寒=300°）。
 // 即黃經 0, 30, 60, 90 … 330，共 12 個。
 func monthHasZhongqi(nmStart, nmEnd float64) bool {
+	has, _ := monthHasZhongqiWithBoundary(nmStart, nmEnd)
+	return has
+}
+
+func monthHasZhongqiWithBoundary(nmStart, nmEnd float64) (has bool, onEndDay bool) {
 	lonStart := celestial.SolarLongitude(nmStart)
 	lonEnd := celestial.SolarLongitude(nmEnd)
-
-	// 將黃經量化到中氣格（每 30 度一格）
-	gridStart := math.Floor(lonStart/30.0) * 30.0
-	gridEnd := math.Floor(lonEnd/30.0) * 30.0
-
-	// 跨越 360/0 邊界：lonEnd < lonStart
-	if lonEnd < lonStart {
-		// 至少跨越了一個中氣格
-		return true
+	endUnwrapped := lonEnd
+	if endUnwrapped < lonStart {
+		endUnwrapped += 360.0
 	}
-	// 同一格或進入了下一格，代表中間有中氣
-	return gridEnd > gridStart
+
+	// 在一個朔望月內太陽黃經增量約 29 度，至多跨越一個中氣界線。
+	boundary := math.Ceil((lonStart+1e-12)/30.0) * 30.0
+	if boundary > endUnwrapped+1e-12 {
+		return false, false
+	}
+
+	target := math.Mod(boundary, 360.0)
+	termJDE := celestial.EstimateTermTime(target, nmStart, nmEnd)
+
+	// 以 UTC+8 民用日為歸屬基準：[朔日, 次朔日) 視為本月。
+	// 若中氣與次朔落在同一民用日，則歸到下月，不算本月中氣。
+	startDay := civilDayUTC8(nmStart)
+	endDay := civilDayUTC8(nmEnd)
+	termDay := civilDayUTC8(termJDE)
+	if termDay == endDay {
+		return false, true
+	}
+
+	return termDay >= startDay && termDay < endDay, false
+}
+
+func civilDayUTC8(jd float64) int {
+	return int(math.Floor(jd + 0.5 + 8.0/24.0))
+}
+
+func monthStartNewMoonForCivilDay(jd, jde float64) float64 {
+	nmPrev := celestial.PreviousNewMoon(jde)
+	nmNext := celestial.FindNewMoon(jde, 1)
+
+	queryDay := civilDayUTC8(jd)
+	if civilDayUTC8(nmNext) == queryDay {
+		return nmNext
+	}
+	return nmPrev
+}
+
+func winterSolsticeMonthStart(ws float64) float64 {
+	nmPrev := celestial.PreviousNewMoon(ws)
+	nmNext := celestial.FindNewMoon(ws, 1)
+
+	// 農曆月以 UTC+8 民用日切換：若冬至與下一朔落在同一天，
+	// 則該日已屬於下一個月，11 月錨點應取下一朔。
+	if civilDayUTC8(nmNext) == civilDayUTC8(ws) {
+		return nmNext
+	}
+	return nmPrev
 }
 
 // buildLeapIndex 根據冬至朔日 nmWS 及當年冬至 ws，計算緊接的一個「冬至年」（13 個月）中
@@ -53,9 +97,33 @@ func buildLeapIndex(nmWS, ws float64) (leapPos int, months []float64) {
 		return -1, months
 	}
 
-	// 找第一個「無中氣」的月（index 1 之後，跳過 11 月本身）
-	for i := 1; i < len(months)-1; i++ {
-		if !monthHasZhongqi(months[i], months[i+1]) {
+	monthCount := len(months) - 1
+	hasZQ := make([]bool, monthCount)
+	onEndDay := make([]bool, monthCount)
+	maxEndDayRun := 0
+	currentRun := 0
+	for i := 1; i < monthCount; i++ {
+		has, endDayBoundary := monthHasZhongqiWithBoundary(months[i], months[i+1])
+		hasZQ[i] = has
+		onEndDay[i] = endDayBoundary
+		if !has && endDayBoundary {
+			currentRun++
+			if currentRun > maxEndDayRun {
+				maxEndDayRun = currentRun
+			}
+		} else {
+			currentRun = 0
+		}
+	}
+
+	// 若同一冬至年出現長鏈（>=3）「中氣落在次朔同一民用日」案例，
+	// 視為邊界歸屬連鎖歧義：避免將這些月份當作首個無中氣月。
+	// 這可消除 2033 類型的提前假閏，且不影響 2014、2020 等短鏈案例。
+	for i := 1; i < monthCount; i++ {
+		if !hasZQ[i] {
+			if maxEndDayRun >= 3 && onEndDay[i] {
+				continue
+			}
 			return i, months
 		}
 	}
@@ -72,16 +140,14 @@ func (e *LunarEngine) GetLunarDate(jd float64) LunarDate {
 	// 1. 朔日（當月初一）與日序
 	// 使用 PreviousNewMoon（Meeus 均值 + 窄窗口二分）取代 FindNewMoon(jde,-1)，
 	// 避免在「jde 剛好在朔日後幾小時」時二分法收斂到前一個朔日的臨界問題。
-	nm0 := celestial.PreviousNewMoon(jde)
+	nm0 := monthStartNewMoonForCivilDay(jd, jde)
 	dayIdx := int(math.Floor(jd+0.5+8.0/24.0)) - int(math.Floor(nm0+0.5+8.0/24.0)) + 1
 
 	// 2. 定位「含冬至」那個朔日 nmWS
-	ws := celestial.FindPreviousWinterSolstice(jde + 32)
-	nmWS := celestial.PreviousNewMoon(ws)
-	if nmWS > nm0+0.01 {
-		ws = celestial.FindPreviousWinterSolstice(nmWS - 2)
-		nmWS = celestial.FindNewMoon(ws, -1)
-	}
+	// 鎖定「當前朔月起點之前」最近的冬至，避免同一朔月內因跨越冬至
+	// 在不同日期落到不同週期，造成同一年月序跳變（1984/2033 類型）。
+	ws := celestial.FindPreviousWinterSolstice(nm0 - 1e-6)
+	nmWS := winterSolsticeMonthStart(ws)
 
 	// 3. 建立本冬至年的閏月資訊，以及所有朔日序列
 	leapPos, allMonths := buildLeapIndex(nmWS, ws)
@@ -94,40 +160,44 @@ func (e *LunarEngine) GetLunarDate(jd float64) LunarDate {
 			break
 		}
 	}
-
-	// 5. 計算農曆月份與是否閏月
-	//    allMonths[0] = 農曆 11 月朔日
-	//    leapPos > 0 代表 allMonths[leapPos] 是閏月
-	isLeap := false
-	calcMonth := 0
-
-	if leapPos > 0 && pos == leapPos {
-		// 當前月就是閏月：月序與前一個月相同
-		isLeap = true
-		// 前一個月的「正常月號」= (11 + leapPos - 1 - 1) % 12 + 1
-		// 更安全：用 pos-1 的正常月號
-		normalPos := pos - 1
-		// normalPos 之前有幾個非閏月
-		leapsBefore := 0
-		if leapPos > 0 && normalPos >= leapPos {
-			leapsBefore = 1
-		}
-		calcMonth = (11+normalPos-leapsBefore-1)%12 + 1
-	} else {
-		// 計算 pos 之前有幾個閏月（最多 1 個）
-		leapsBefore := 0
-		if leapPos > 0 && pos > leapPos {
-			leapsBefore = 1
-		}
-		calcMonth = (11+pos-leapsBefore-1)%12 + 1
+	if pos >= len(allMonths)-1 {
+		pos = len(allMonths) - 2
 	}
 
-	// 6. 農曆年份：以正月初一為切換點
+	// 5. 生成本冬至年的月序（含閏月）與農曆年映射。
+	// allMonths[0] 固定為含冬至月（農曆 11 月），其農曆年為 yWS。
 	yWS, _, _ := celestial.JDToDate(ws)
-	lunarYear := yWS + 1
-	if calcMonth >= 11 {
-		lunarYear = yWS
+	monthCount := len(allMonths) - 1
+	monthNums := make([]int, monthCount)
+	monthLeaps := make([]bool, monthCount)
+	monthYears := make([]int, monthCount)
+
+	monthNums[0] = 11
+	monthLeaps[0] = false
+	monthYears[0] = yWS
+
+	for i := 1; i < monthCount; i++ {
+		if leapPos > 0 && i == leapPos {
+			// 閏月：沿用上一月月號，年份不變。
+			monthNums[i] = monthNums[i-1]
+			monthLeaps[i] = true
+			monthYears[i] = monthYears[i-1]
+			continue
+		}
+
+		nextMonth := monthNums[i-1]%12 + 1
+		monthNums[i] = nextMonth
+		monthLeaps[i] = false
+		monthYears[i] = monthYears[i-1]
+		if nextMonth == 1 {
+			// 只有進入「非閏正月」才切換農曆年。
+			monthYears[i]++
+		}
 	}
+
+	calcMonth := monthNums[pos]
+	isLeap := monthLeaps[pos]
+	lunarYear := monthYears[pos]
 
 	return LunarDate{
 		Year:       lunarYear,

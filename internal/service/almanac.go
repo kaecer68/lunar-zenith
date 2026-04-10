@@ -1,5 +1,18 @@
 package service
 
+import "github.com/kaecer68/lunar-zenith/pkg/zodiac"
+
+// Almanac method note:
+// Current implementation uses a deterministic baseline model:
+// 1) derive Twelve Officer (建除十二神) from month/day branch,
+// 2) map officer -> suitable/avoidable via static table,
+// 3) map day stem -> deity directions via static table.
+//
+// This is intentionally a stable and explainable subset. It is NOT a full
+// multi-factor traditional tongshu engine (which may combine additional
+// shensha layers, conflict-resolution priorities, and school-specific rules).
+// If expanding rules, keep provenance and precedence explicit in SKILLS.md.
+
 // Directions 吉神方位
 type Directions struct {
 	Wealth  string `json:"wealth"`  // 財神方位
@@ -14,7 +27,69 @@ type AlmanacEntry struct {
 	Avoidable []string `json:"avoidable"` // 忌
 }
 
-// AlmanacActivities 建除十二神對應的宜忌活動
+// AlmanacRuleSource 記錄規則來源，供後續維運與對拍追蹤。
+type AlmanacRuleSource struct {
+	Layer      string `json:"layer"`      // 規則層（base/shensha/conflict）
+	RuleID     string `json:"rule_id"`    // 規則識別
+	Provenance string `json:"provenance"` // 來源註記（書目/版本）
+	Note       string `json:"note"`       // 補充說明
+}
+
+// AlmanacRuleHit 是單一事項的判定記錄。
+type AlmanacRuleHit struct {
+	Action  string            `json:"action"`  // 事項（例如：嫁娶）
+	Verdict string            `json:"verdict"` // suitable/avoidable
+	Source  AlmanacRuleSource `json:"source"`
+}
+
+// AlmanacDecision 是可追溯的宜忌決策結果。
+type AlmanacDecision struct {
+	Suitable   []string         `json:"suitable"`
+	Avoidable  []string         `json:"avoidable"`
+	Directions Directions       `json:"directions"`
+	Hits       []AlmanacRuleHit `json:"hits"`
+}
+
+// AlmanacContext 控制宜忌決策層的啟用狀態與口徑。
+type AlmanacContext struct {
+	MonthBranch       int    // 月支索引（0-11）
+	DayBranch         int    // 日支索引（0-11）
+	EnableShenshaV1   bool   // 是否啟用神煞層 v1
+	EnableShenshaV2   bool   // 是否啟用神煞層 v2（主流對齊增強）
+	ReferenceProfile  string // 來源口徑標記
+	ConflictPolicyTag string // 衝突仲裁標記
+}
+
+// BaselineAlmanacContext 回傳與既有版本相容的基線口徑（不啟用神煞覆寫）。
+func BaselineAlmanacContext() AlmanacContext {
+	return AlmanacContext{
+		MonthBranch:       -1,
+		DayBranch:         -1,
+		EnableShenshaV1:   false,
+		EnableShenshaV2:   false,
+		ReferenceProfile:  "Baseline-v1",
+		ConflictPolicyTag: "avoid-wins",
+	}
+}
+
+// MainstreamAlmanacContextV2 回傳主流對齊第二版口徑（啟用神煞層 v1+v2）。
+func MainstreamAlmanacContextV2(monthBranch int, dayBranch int) AlmanacContext {
+	return AlmanacContext{
+		MonthBranch:       monthBranch,
+		DayBranch:         dayBranch,
+		EnableShenshaV1:   true,
+		EnableShenshaV2:   true,
+		ReferenceProfile:  "Tongshu-Mainstream-v2",
+		ConflictPolicyTag: "layered-mainstream-v2",
+	}
+}
+
+// MainstreamAlmanacContextV1 保留相容；內部映射到 v2 口徑。
+func MainstreamAlmanacContextV1(monthBranch int, dayBranch int) AlmanacContext {
+	return MainstreamAlmanacContextV2(monthBranch, dayBranch)
+}
+
+// AlmanacActivities 建除十二神對應的宜忌活動（目前為主決策表）
 var AlmanacActivities = map[string]AlmanacEntry{
 	"建": {
 		Suitable:  []string{"出行", "上任", "會友", "上樑"},
@@ -103,10 +178,252 @@ func GetDeityDirections(dayStemIndex int) Directions {
 }
 
 // CalculateAlmanac 計算黃曆宜忌和吉神方位
+// 注意：目前僅以建除主表 + 日干方位推導；其他神煞資訊不直接改寫宜忌列表。
 func CalculateAlmanac(officer string, dayStemIndex int) (suitable, avoidable []string, directions Directions) {
-	almanac := GetAlmanacByOfficer(officer)
-	directions = GetDeityDirections(dayStemIndex)
-	return almanac.Suitable, almanac.Avoidable, directions
+	decision := CalculateAlmanacDetailed(officer, dayStemIndex)
+	return decision.Suitable, decision.Avoidable, decision.Directions
+}
+
+// CalculateAlmanacDetailed 計算可追溯的宜忌決策。
+// 目前採 Baseline v1：
+// - base layer: 建除主表
+// - shensha layer: 保留擴充入口（預設不覆寫）
+// - conflict layer: 同事項衝突時，忌優先於宜
+func CalculateAlmanacDetailed(officer string, dayStemIndex int) AlmanacDecision {
+	return CalculateAlmanacDetailedWithContext(officer, dayStemIndex, BaselineAlmanacContext())
+}
+
+// CalculateAlmanacWithContext 計算含規則上下文的宜忌結果（相容舊回傳格式）。
+func CalculateAlmanacWithContext(officer string, dayStemIndex int, ctx AlmanacContext) (suitable, avoidable []string, directions Directions) {
+	decision := CalculateAlmanacDetailedWithContext(officer, dayStemIndex, ctx)
+	return decision.Suitable, decision.Avoidable, decision.Directions
+}
+
+// CalculateAlmanacDetailedWithContext 計算可追溯決策（含規則層上下文）。
+func CalculateAlmanacDetailedWithContext(officer string, dayStemIndex int, ctx AlmanacContext) AlmanacDecision {
+	directions := GetDeityDirections(dayStemIndex)
+	hits := buildBaseOfficerHits(officer)
+	hits = applyShenshaOverrides(hits, ctx, officer)
+	selectedHits, suitable, avoidable := resolveAlmanacConflicts(hits)
+
+	return AlmanacDecision{
+		Suitable:   suitable,
+		Avoidable:  avoidable,
+		Directions: directions,
+		Hits:       selectedHits,
+	}
+}
+
+func buildBaseOfficerHits(officer string) []AlmanacRuleHit {
+	entry := GetAlmanacByOfficer(officer)
+	hits := make([]AlmanacRuleHit, 0, len(entry.Suitable)+len(entry.Avoidable))
+
+	for _, action := range entry.Suitable {
+		hits = append(hits, AlmanacRuleHit{
+			Action:  action,
+			Verdict: "suitable",
+			Source: AlmanacRuleSource{
+				Layer:      "base",
+				RuleID:     "officer:" + officer,
+				Provenance: "Baseline-v1/TwelveOfficerTable",
+				Note:       "建除主表直接映射",
+			},
+		})
+	}
+
+	for _, action := range entry.Avoidable {
+		hits = append(hits, AlmanacRuleHit{
+			Action:  action,
+			Verdict: "avoidable",
+			Source: AlmanacRuleSource{
+				Layer:      "base",
+				RuleID:     "officer:" + officer,
+				Provenance: "Baseline-v1/TwelveOfficerTable",
+				Note:       "建除主表直接映射",
+			},
+		})
+	}
+
+	return hits
+}
+
+func applyShenshaOverrides(hits []AlmanacRuleHit, ctx AlmanacContext, officer string) []AlmanacRuleHit {
+	if !ctx.EnableShenshaV1 || ctx.DayBranch < 0 || ctx.DayBranch > 11 {
+		return hits
+	}
+
+	deity := zodiac.GetDailyDeity(ctx.DayBranch)
+	if ctx.MonthBranch >= 0 && ctx.MonthBranch <= 11 {
+		deity = zodiac.GetDailyDeityByMonthBranch(ctx.MonthBranch, ctx.DayBranch)
+	}
+	if deity.Type == "凶" {
+		for _, action := range []string{"嫁娶", "開市", "交易", "入宅"} {
+			hits = append(hits, AlmanacRuleHit{
+				Action:  action,
+				Verdict: "avoidable",
+				Source: AlmanacRuleSource{
+					Layer:      "shensha",
+					RuleID:     "daily-deity:type:xiong",
+					Provenance: ctx.ReferenceProfile + "/DailyDeityType",
+					Note:       "值神為凶，收斂為保守避事",
+				},
+			})
+		}
+	}
+
+	if deity.Type == "吉" {
+		for _, action := range []string{"祈福", "求嗣"} {
+			hits = append(hits, AlmanacRuleHit{
+				Action:  action,
+				Verdict: "suitable",
+				Source: AlmanacRuleSource{
+					Layer:      "shensha",
+					RuleID:     "daily-deity:type:ji",
+					Provenance: ctx.ReferenceProfile + "/DailyDeityType",
+					Note:       "值神為吉，增加常見吉事（不直接推祭祀）",
+				},
+			})
+		}
+	}
+
+	if ctx.EnableShenshaV2 {
+		hits = applyMainstreamV2Overrides(hits, ctx, officer)
+	}
+
+	return hits
+}
+
+func applyMainstreamV2Overrides(hits []AlmanacRuleHit, ctx AlmanacContext, officer string) []AlmanacRuleHit {
+	type officerPack struct {
+		positive []string
+		negative []string
+		neutral  []string
+		note     string
+	}
+
+	packs := map[string]officerPack{
+		"開": {
+			positive: []string{"嫁娶", "開市", "交易", "立券交易", "入宅", "移徙", "安床", "動土", "破土", "拆卸", "開光", "祈福", "求嗣"},
+			negative: []string{"祭祀", "探病", "入殮"},
+			neutral:  []string{"交易", "立約", "安機械"},
+			note:     "開日主流對齊增強",
+		},
+		"成": {
+			positive: []string{"嫁娶", "祭祀", "祈福", "開市", "交易", "立約", "入宅", "安床", "出行"},
+			negative: []string{"安葬", "探病"},
+			note:     "成日主流對齊增強",
+		},
+		"滿": {
+			positive: []string{"嫁娶", "祈福", "移徙", "入宅", "開市", "安床", "求嗣"},
+			negative: []string{"安葬", "探病", "入殮"},
+			note:     "滿日主流對齊增強",
+		},
+	}
+
+	pack, ok := packs[officer]
+	if !ok {
+		return hits
+	}
+
+	for _, action := range pack.positive {
+		hits = append(hits, AlmanacRuleHit{
+			Action:  action,
+			Verdict: "suitable_strong",
+			Source: AlmanacRuleSource{
+				Layer:      "shensha",
+				RuleID:     "mainstream-v2:officer:" + officer + ":positive-pack",
+				Provenance: ctx.ReferenceProfile + "/" + officer + "DayPack",
+				Note:       pack.note + "：提升常見民用吉事",
+			},
+		})
+	}
+
+	for _, action := range pack.negative {
+		hits = append(hits, AlmanacRuleHit{
+			Action:  action,
+			Verdict: "avoidable_strong",
+			Source: AlmanacRuleSource{
+				Layer:      "shensha",
+				RuleID:     "mainstream-v2:officer:" + officer + ":negative-pack",
+				Provenance: ctx.ReferenceProfile + "/" + officer + "DayPack",
+				Note:       pack.note + "：收斂常見忌事",
+			},
+		})
+	}
+
+	for _, action := range pack.neutral {
+		hits = append(hits, AlmanacRuleHit{
+			Action:  action,
+			Verdict: "neutral_strong",
+			Source: AlmanacRuleSource{
+				Layer:      "shensha",
+				RuleID:     "mainstream-v2:officer:" + officer + ":neutral-pack",
+				Provenance: ctx.ReferenceProfile + "/" + officer + "DayPack",
+				Note:       pack.note + "：移除非目標清單事項",
+			},
+		})
+	}
+
+	return hits
+}
+
+func resolveAlmanacConflicts(hits []AlmanacRuleHit) ([]AlmanacRuleHit, []string, []string) {
+	type selected struct {
+		hit   AlmanacRuleHit
+		score int
+	}
+
+	selectedByAction := make(map[string]selected, len(hits))
+	actionOrder := make([]string, 0, len(hits))
+
+	for _, hit := range hits {
+		score := verdictPriority(hit.Verdict)
+		if cur, ok := selectedByAction[hit.Action]; ok {
+			if score > cur.score {
+				selectedByAction[hit.Action] = selected{hit: hit, score: score}
+			}
+			continue
+		}
+
+		actionOrder = append(actionOrder, hit.Action)
+		selectedByAction[hit.Action] = selected{hit: hit, score: score}
+	}
+
+	selectedHits := make([]AlmanacRuleHit, 0, len(actionOrder))
+	suitable := make([]string, 0, len(actionOrder))
+	avoidable := make([]string, 0, len(actionOrder))
+
+	for _, action := range actionOrder {
+		sel := selectedByAction[action]
+		selectedHits = append(selectedHits, sel.hit)
+		if sel.hit.Verdict == "neutral_strong" {
+			continue
+		}
+		if sel.hit.Verdict == "avoidable" || sel.hit.Verdict == "avoidable_strong" {
+			avoidable = append(avoidable, action)
+			continue
+		}
+		suitable = append(suitable, action)
+	}
+
+	return selectedHits, suitable, avoidable
+}
+
+func verdictPriority(verdict string) int {
+	switch verdict {
+	case "avoidable_strong":
+		return 4
+	case "neutral_strong":
+		return 3
+	case "suitable_strong":
+		return 2
+	case "avoidable":
+		return 1
+	case "suitable":
+		return 0
+	default:
+		return -1
+	}
 }
 
 // GetDayOfficerName 獲取十二值日星名稱

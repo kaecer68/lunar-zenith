@@ -2,6 +2,11 @@ package celestial
 
 import (
 	"math"
+	"os"
+	"path/filepath"
+	"sync"
+
+	swisseph "github.com/tejzpr/go-swisseph"
 )
 
 const (
@@ -9,9 +14,21 @@ const (
 	Rad2Deg = 180.0 / math.Pi
 )
 
+var (
+	solarEpheInitOnce sync.Once
+	solarEpheReady    bool
+)
+
 // SolarLongitude 計算給定 JDE 的太陽平黃經（精簡版 VSOP87）
 // 精度足以對齊節氣計算需求
 func SolarLongitude(jde float64) float64 {
+	if lon, ok := solarLongitudeSwiss(jde); ok {
+		return lon
+	}
+	return solarLongitudeApprox(jde)
+}
+
+func solarLongitudeApprox(jde float64) float64 {
 	t := (jde - 2451545.0) / 36525.0 // 儒略世紀數
 
 	// 太陽幾何平黃經 (L0)
@@ -39,6 +56,62 @@ func SolarLongitude(jde float64) float64 {
 	lambda := theta - 0.00569 - 0.00478*math.Sin(omega*Deg2Rad)
 
 	return math.Mod(lambda+360.0, 360.0)
+}
+
+func solarLongitudeSwiss(jde float64) (float64, bool) {
+	solarEpheInitOnce.Do(func() {
+		solarEpheReady = initSolarEphemerisPath()
+	})
+	if !solarEpheReady {
+		return 0, false
+	}
+
+	res := swisseph.CalcUT(jde, swisseph.Sun, swisseph.FlagSwieph)
+	if res.Flag < 0 {
+		return 0, false
+	}
+
+	lon := math.Mod(res.Data[0], 360.0)
+	if lon < 0 {
+		lon += 360.0
+	}
+	return lon, true
+}
+
+func initSolarEphemerisPath() bool {
+	paths := []string{
+		"./data/ephe",
+		"../data/ephe",
+		"../../data/ephe",
+	}
+
+	if exePath, err := os.Executable(); err == nil {
+		exeDir := filepath.Dir(exePath)
+		paths = append(paths,
+			filepath.Join(exeDir, "data/ephe"),
+			filepath.Join(exeDir, "../data/ephe"),
+		)
+	}
+
+	for _, path := range paths {
+		if isSolarEphemerisPath(path) {
+			swisseph.SetEphePath(path)
+			return true
+		}
+	}
+
+	swisseph.SetEphePath("")
+	return true
+}
+
+func isSolarEphemerisPath(path string) bool {
+	if _, err := os.Stat(filepath.Join(path, "sepl_18.se1")); err == nil {
+		return true
+	}
+	if _, err := os.Stat(filepath.Join(path, "sepl_12.se1")); err == nil {
+		return true
+	}
+	return false
 }
 
 // GetSolarTermName 獲取節氣名稱

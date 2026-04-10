@@ -645,18 +645,134 @@ const OFFICER_TYPE = {
   '破':'凶','危':'凶','成':'吉','收':'吉','開':'吉','閉':'中'
 };
 const OFFICER_DESC = {
-  '建':'萬物始建，宜出行上任，忌婚嫁開倉',
-  '除':'掃除舊穢，宜沐浴清潔，忌嫁娶安床',
-  '滿':'諸事豐滿，宜嫁娶祈福，忌安葬求醫',
-  '平':'諸事平和，宜修造動土，忌嫁娶出行',
-  '定':'事事安定，宜嫁娶祭祀，忌出行上任',
-  '執':'執掌收藏，宜祭祀捕捉，忌嫁娶入宅',
-  '破':'諸事破敗，宜破屋壞垣，忌婚嫁開市',
-  '危':'諸事危險，宜安床修飾，忌嫁娶出行',
-  '成':'諸事成就，宜嫁娶開市，忌安葬動土',
-  '收':'萬物收斂，宜祭祀嫁娶，忌開倉出財',
-  '開':'萬象開通，宜開市交易，忌安葬動土',
-  '閉':'萬物閉藏，宜祭祀安葬，忌開市出行',
+  '建':'建有開創、起始之意，偏向啟動新事；傳統上不宜立即收斂性事項。',
+  '除':'除有掃除、去舊之意，重在清理與解除；偏向去晦納新。',
+  '滿':'滿有圓滿、盈實之意，偏向慶賀與成全；但過滿亦忌過度擴張。',
+  '平':'平有平穩、均衡之意，偏向循常守成；宜中道而行。',
+  '定':'定有安定、定局之意，偏向立約與定策；不宜頻繁變動。',
+  '執':'執有執守、執行之意，偏向按章行事與收持；不利大幅轉向。',
+  '破':'破有破舊、拆解之意，偏向處理舊局與除弊；不宜喜慶新啟。',
+  '危':'危有警惕、戒慎之意，偏向修補防患；重大事項宜保守。',
+  '成':'成有成就、完成之意，偏向收官與落成；可推進定案。',
+  '收':'收有收斂、回收之意，偏向整理與歸納；不宜過度擴張。',
+  '開':'開有開放、開通、開心之意，利開展與互動；傳統上除安葬類多視為大凶。',
+  '閉':'閉有閉藏、封藏之意，偏向養藏與收束；不利對外拓展。',
+};
+const DEITY_META = {
+  '青龍':{
+    track:'黃道吉神',
+    meaning:'東方七個星宿（角、亢、氐、房、心、尾、箕）的總稱。以青色神龍象徵生氣蓬勃之東方木氣。',
+    element:'屬木，代表春季，主生發與成長。',
+    calendar:'當太陽運行到與「青龍」星域產生吉利交角的這一天，曆法將其定義為萬事亨通、貴氣流通的吉日。',
+    impact:'代表喜慶、新生、貴人相助。宜嫁娶、開市、動工、出行。'
+  },
+  '明堂':{
+    track:'黃道吉神',
+    meaning:'象徵天子朝廷議事之明堂，光明正大、政令暢達之所。',
+    element:'屬土，居中央，主信義與通達。',
+    calendar:'太陽行至「明堂」對應方位時，光明透達，諸事通達無礙，宜公開、正式之事。',
+    impact:'百事吉利，公務、簽約、立約尤宜。宜謁貴、出行、開光。'
+  },
+  '天刑':{
+    track:'黑道凶神',
+    meaning:'象徵天界執法刑罰之神，主司法令、懲戒，刑罰之氣主事。',
+    element:'屬火，主刑罰與執法。',
+    calendar:'太陽行至「天刑」所屬區間，刑氣旺盛，易引動法律糾紛與人事衝突。',
+    impact:'主訴訟、官非、刑傷。忌立約、嫁娶、出行、動工。'
+  },
+  '朱雀':{
+    track:'黑道凶神',
+    meaning:'南方七個星宿（井、鬼、柳、星、張、翼、軫）的總稱。以朱紅神雀象徵火氣過盛之南方。',
+    element:'屬火，代表夏季，主口舌與文書。',
+    calendar:'太陽行至「朱雀」星域，火氣過旺，口舌紛爭與是非之氣隨之升起。',
+    impact:'主口舌是非、官訟、火災。忌爭辯、訴訟、遠行、嫁娶。'
+  },
+  '金匱':{
+    track:'黃道吉神',
+    meaning:'象徵黃金寶庫封存之所，財寶安穩、積蓄有成之象。',
+    element:'屬金，主財富與積蓄。',
+    calendar:'太陽行至「金匱」交角，財氣匯聚，入庫納財之氣旺盛。',
+    impact:'主財物安穩、積財旺財。宜入倉、收財、理財、嫁娶。'
+  },
+  '天德':{
+    track:'黃道吉神',
+    meaning:'上天賜福之德神，遊行諸宮，逢之百煞潛藏，萬事受護。',
+    element:'屬火，主陽德與庇護。',
+    calendar:'天德值日，象徵上天護持，諸煞退避，此日百無禁忌。',
+    impact:'百事大吉，可化解諸煞。宜嫁娶、動土、開光、祈福。'
+  },
+  '白虎':{
+    track:'黑道凶神',
+    meaning:'西方七個星宿（奎、婁、胃、昴、畢、觜、參）的總稱。以白色猛虎象徵剛烈肅殺之西方金氣。',
+    element:'屬金，代表秋季，主肅殺與損傷。',
+    calendar:'太陽行至「白虎」星域，金氣猛烈，殺伐與剛硬之氣盛行。',
+    impact:'主剛烈、損傷、血光之災。忌動工、嫁娶、手術、出行。'
+  },
+  '玉堂':{
+    track:'黃道吉神',
+    meaning:'象徵仙家宮殿、神靈居所，天界清淨高貴之地，文昌大開之象。',
+    element:'屬金，主文昌與高貴。',
+    calendar:'太陽照臨「玉堂」交角，天清地靜，文昌開運，宜文事與求名之舉。',
+    impact:'宜讀書、考試、文書往來、求名、簽約。'
+  },
+  '天牢':{
+    track:'黑道凶神',
+    meaning:'象徵天界囚禁之所，拘限困頓之神，事多阻滯之象。',
+    element:'屬水，主囚困與阻礙。',
+    calendar:'太陽行至「天牢」對應區間，拘限之氣旺盛，諸事易受阻滯或牽絆。',
+    impact:'主拘限、阻礙、牢獄之患。忌出行、開業、嫁娶、立約。'
+  },
+  '玄武':{
+    track:'黑道凶神',
+    meaning:'北方七個星宿（斗、牛、女、虛、危、室、壁）的總稱。以黑色龜蛇象徵陰寒幽暗之北方水氣。',
+    element:'屬水，代表冬季，主陰謀與潛伏。',
+    calendar:'太陽行至「玄武」星域，陰水盛，隱匿欺詐之氣偏旺。',
+    impact:'主盜竊、欺詐、陰謀。忌出行、藏財、嫁娶、簽約。'
+  },
+  '司命':{
+    track:'黃道吉神',
+    meaning:'掌管人間壽命與禍福的神祇，象徵慈悲護持與生命庇護之力。',
+    element:'屬火，主壽福與護持。',
+    calendar:'司命值日，掌司人間吉凶禍福，此日受其護持，祭祀祈福最為靈應。',
+    impact:'宜祭祀、祈福、修造、求子。忌動刀、手術、爭訟。'
+  },
+  '勾陳':{
+    track:'黑道凶神',
+    meaning:'象徵北極附近主兵刑之神，掌管戰爭、爭訟與糾紛，鬥爭之氣旺盛。',
+    element:'屬土，主爭訟與衝突。',
+    calendar:'太陽行至「勾陳」對應方位，鬥爭衝突之氣上揚，易起紛爭與破財之事。',
+    impact:'主爭訟、鬥毆、破財。忌立約、動工、嫁娶、出行。'
+  },
+};
+const MANSION_META = {
+  '角木蛟': { fortune: '半吉', meaning: '代表競爭、法規、邊界事務', suitable: '辦婚禮、出門旅遊、動土開工', taboo: '辦喪事' },
+  '亢金龍': { fortune: '凶', meaning: '關聯政府政策、突發疾病、麻煩事', suitable: '辦婚禮、播種、買賣交易', taboo: '蓋房子、辦喪事' },
+  '氐土貉': { fortune: '凶', meaning: '代表文書、公告、地基', suitable: '買地種田、播種', taboo: '辦喪事、蓋房子、辦婚禮' },
+  '房日兔': { fortune: '吉', meaning: '象徵權力、開拓新局面', suitable: '祭拜、辦婚禮、上樑、搬家', taboo: '買地、做新衣服' },
+  '心月狐': { fortune: '凶', meaning: '代表權力中心、高層鬥爭', suitable: '祭拜、辦婚禮', taboo: '做新衣服、辦喪事' },
+  '尾火虎': { fortune: '吉', meaning: '象徵風雨天氣、機關單位', suitable: '辦婚禮、施工建造', taboo: '做新衣服、辦喪事' },
+  '箕水豹': { fortune: '吉', meaning: '代表大風、與外族或外地人打交道', suitable: '裝修、開門窗、排水', taboo: '辦喪事' },
+  '斗木獬': { fortune: '吉', meaning: '象徵政治鬥爭、軍事行動、兵權', suitable: '做新衣服、開門窗、排水', taboo: '辦喪事' },
+  '牛金牛': { fortune: '凶', meaning: '代表犧牲奉獻、祭祀典禮', suitable: '辦婚禮、施工', taboo: '辦喪事' },
+  '女土蝠': { fortune: '凶', meaning: '象徵女性才藝、婚姻嫁娶', suitable: '種田、出門旅遊', taboo: '新店開張' },
+  '虛日鼠': { fortune: '凶', meaning: '代表死亡、喪事、悲傷事', suitable: '辦喪事（唯一合適）', taboo: '開門窗、排水' },
+  '危月燕': { fortune: '凶', meaning: '象徵祠堂、寺廟、工地', suitable: '出門、收錢要帳', taboo: '動工、辦喪事、開門放水' },
+  '室火豬': { fortune: '吉', meaning: '代表蓋房子、土木工程', suitable: '辦婚禮、搬家、施工、祭拜、挖井', taboo: '辦喪事' },
+  '壁水獝': { fortune: '吉', meaning: '象徵學校、文章、圖書出版', suitable: '辦婚禮、施工、辦喪事', taboo: '往南方去' },
+  '奎木狼': { fortune: '凶', meaning: '代表軍事行動、水利工程、武器庫', suitable: '出門、做新衣服、修房子', taboo: '開店' },
+  '婁金狗': { fortune: '吉', meaning: '象徵祭祀活動、集體聚會', suitable: '辦婚禮、修房子、修庭院', taboo: '（無特別忌諱）' },
+  '胃土雉': { fortune: '吉', meaning: '代表儲藏、囤貨、物流運輸', suitable: '辦婚禮、裝修', taboo: '辦喪事' },
+  '昴日雞': { fortune: '凶', meaning: '象徵打官司、坐牢、訴訟', suitable: '祭拜、辦婚禮', taboo: '開張做生意' },
+  '畢火鳥': { fortune: '吉', meaning: '代表國界、劃清界線、分工', suitable: '蓋房子、辦喪事、辦婚禮', taboo: '排水' },
+  '觜火猴': { fortune: '凶', meaning: '象徵軍事行動、刑罰', suitable: '祭拜、辦婚禮', taboo: '開張' },
+  '參水猿': { fortune: '吉', meaning: '代表珍寶財富、討伐敵人', suitable: '辦婚禮、辦喪事', taboo: '動工' },
+  '井木犴': { fortune: '吉', meaning: '象徵泉水、湖泊、封建制度', suitable: '祭拜、播種、施工', taboo: '做新衣服' },
+  '鬼金羊': { fortune: '凶', meaning: '代表疾病、死亡、喪事', suitable: '辦婚禮、施工', taboo: '出門、買賣交易' },
+  '柳土獐': { fortune: '凶', meaning: '代表吃飯、做飯、廚房事', suitable: '種田、辦喪事', taboo: '百事不宜（啥都不太順）' },
+  '星日馬': { fortune: '凶', meaning: '代表文采、打扮、衣服首飾', suitable: '做新衣服、種田', taboo: '辦喪事' },
+  '張月鹿': { fortune: '吉', meaning: '象徵珍寶、藥材、健康', suitable: '辦婚禮、開店、祭拜', taboo: '靠近水邊' },
+  '翼火蛇': { fortune: '吉', meaning: '代表娛樂、文藝、美容美髮', suitable: '施工、辦婚禮、買牲畜', taboo: '出門遠行' },
+  '軫水蚓': { fortune: '吉', meaning: '象徵各種交通工具、出行運', suitable: '祭拜、種田', taboo: '辦婚禮' },
 };
 const STEMS = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
 const BRANCHES = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
@@ -681,6 +797,9 @@ const SOLAR_TERMS_INFO = {
   '冬至':'晝最短夜最長','小寒':'氣候開始寒冷','大寒':'一年中最冷時期',
   '立春':'春季開始','雨水':'降雨開始','驚蟄':'蟄蟲驚醒',
 };
+
+// 版本戳：用於快速確認是否載入最新嵌入頁面。
+const UI_REV = 'ui-rev-2026-04-10-1';
 
 // ── State ──────────────────────────────────
 let currentDate = new Date();
@@ -841,6 +960,8 @@ function renderData(d, data) {
   const dirs = data.directions || {};
   const shensha = data.shen_sha || [];
   const mansion = data.mansion || {};
+  const mansionFullName = mansion.FullName || `${mansion.Name || ''}${mansion.Element || ''}${mansion.Animal || ''}`;
+  const mansionMeta = MANSION_META[mansionFullName] || null;
   const dailyDeity = data.daily_deity || {};
   const fetalGod = data.fetal_god || {};
   const clashSha = data.clash_sha || {};
@@ -908,6 +1029,7 @@ function renderData(d, data) {
     <div class="hero-weekday">星期${wd}
       ${hol.is_holiday && hol.name ? `<span class="holiday-badge">${hol.name}</span>` : ''}
     </div>
+    <div style="margin-top:6px;font-size:.72rem;color:var(--text-dim)">頁面版本：${UI_REV}</div>
     <div class="hero-lunar" style="margin-top:12px">
       <div><span class="label">農曆</span> ${lunarYear}年 ${lunarMonthStr} ${lunarDayStr}</div>
       <div style="margin-top:4px"><span class="label">年份</span> ${yearGZ}年 · ${yearAnimal}年</div>
@@ -1071,25 +1193,24 @@ ${(hol.name || chinaHol.name) ? `
     </div>
   </div>
   <div class="info-row">
-    <span class="info-label">今日宜</span>
-    <span class="info-value" style="color:var(--green)">${(data.suitable||[]).join('、') || '─'}</span>
-  </div>
-  <div class="info-row">
-    <span class="info-label">今日忌</span>
-    <span class="info-value" style="color:var(--red)">${(data.avoidable||[]).join('、') || '─'}</span>
+    <span class="info-label">十二神含義</span>
+    <span class="info-value">${offDesc || '─'}</span>
   </div>
 </div>
 
 <!-- 宜忌活動 -->
 <div class="card">
   <div class="card-title">黃曆宜忌</div>
-  <div style="margin-bottom:8px">
-    <div style="font-size:.75rem;color:var(--green);margin-bottom:6px">▲ 宜</div>
-    <div class="tags">${(data.suitable||[]).map(s=>`<span class="tag tag-suitable">${s}</span>`).join('') || '<span style="color:var(--text-dim);font-size:.8rem">無</span>'}</div>
+  <div style="font-size:.8rem;color:var(--text-dim);line-height:1.6;margin:2px 0 10px">
+    根據本應用口徑（建除十二神主表 + 值神神煞層主流對齊 v2 + 衝突仲裁）
   </div>
-  <div>
-    <div style="font-size:.75rem;color:var(--red);margin-bottom:6px">▼ 忌</div>
-    <div class="tags">${(data.avoidable||[]).map(s=>`<span class="tag tag-avoidable">${s}</span>`).join('') || '<span style="color:var(--text-dim);font-size:.8rem">無</span>'}</div>
+  <div class="info-row" style="align-items:flex-start">
+    <span class="info-label">今日宜：</span>
+    <span class="info-value" style="color:var(--green);line-height:1.6">${(data.suitable||[]).join('、') || '無'}</span>
+  </div>
+  <div class="info-row" style="align-items:flex-start">
+    <span class="info-label">今日忌：</span>
+    <span class="info-value" style="color:var(--red);line-height:1.6">${(data.avoidable||[]).join('、') || '無'}</span>
   </div>
 </div>
 
@@ -1115,7 +1236,7 @@ ${(hol.name || chinaHol.name) ? `
   <div style="display:flex;align-items:center;padding:8px 0">
     <div style="font-size:2.5rem;font-weight:900;color:var(--accent);margin-right:14px">${mansion.Name}</div>
     <div style="flex:1">
-      <div style="font-size:1.1rem;font-weight:700">${mansion.FullName}</div>
+      <div style="font-size:1.1rem;font-weight:700">${mansionFullName}</div>
       <div style="font-size:.8rem;color:var(--text-dim);margin-top:3px">${mansion.Palace} · 五行${mansion.Element}</div>
     </div>
   </div>
@@ -1131,19 +1252,57 @@ ${(hol.name || chinaHol.name) ? `
     <span class="info-label">五行</span>
     <span class="info-value">${mansion.Element}</span>
   </div>
+  <div class="info-row" style="align-items:flex-start">
+    <span class="info-label">吉凶</span>
+    <span class="info-value" style="color:${mansionMeta && mansionMeta.fortune === '凶' ? 'var(--red)' : mansionMeta && mansionMeta.fortune === '吉' ? 'var(--green)' : 'var(--accent2)'}">${mansionMeta ? mansionMeta.fortune : '─'}</span>
+  </div>
+  <div class="info-row" style="align-items:flex-start">
+    <span class="info-label">現代白話含義</span>
+    <span class="info-value" style="line-height:1.6">${mansionMeta ? mansionMeta.meaning : '─'}</span>
+  </div>
+  <div class="info-row" style="align-items:flex-start">
+    <span class="info-label">今日宜</span>
+    <span class="info-value" style="line-height:1.6;color:var(--green)">${mansionMeta ? mansionMeta.suitable : '─'}</span>
+  </div>
+  <div class="info-row" style="align-items:flex-start">
+    <span class="info-label">今日忌</span>
+    <span class="info-value" style="line-height:1.6;color:var(--red)">${mansionMeta ? mansionMeta.taboo : '─'}</span>
+  </div>
 </div>
 
 <!-- 值神 -->
-<div class="card">
+${(()=>{
+  const dm = DEITY_META[dailyDeity.Name] || {};
+  const isAuspicious = dm.track && dm.track.startsWith('黃道');
+  const trackColor = isAuspicious ? 'var(--green)' : 'var(--red)';
+  const badgeColor = dailyDeity.Type==='吉'?'var(--green)':dailyDeity.Type==='凶'?'var(--red)':'#8888cc';
+  return `<div class="card">
   <div class="card-title">值神</div>
   <div style="display:flex;align-items:center;padding:8px 0">
-    <div style="font-size:2.2rem;font-weight:900;color:${dailyDeity.Type==='吉'?'var(--green)':dailyDeity.Type==='凶'?'var(--red)':'#8888cc'};margin-right:14px">${dailyDeity.Name}</div>
+    <div style="font-size:2.2rem;font-weight:900;color:${badgeColor};margin-right:14px">${dailyDeity.Name}</div>
     <div style="flex:1">
-      <div style="font-size:1rem;font-weight:700;color:${dailyDeity.Type==='吉'?'var(--green)':dailyDeity.Type==='凶'?'var(--red)':'#8888cc'}">${dailyDeity.Name}（${dailyDeity.Type}）</div>
-      <div style="font-size:.78rem;color:var(--text-dim);margin-top:3px;line-height:1.5">${dailyDeity.Desc}</div>
+      <div style="font-size:1rem;font-weight:700;color:${badgeColor}">${dailyDeity.Name}（${dailyDeity.Type || '─'}）</div>
+      <div style="font-size:.82rem;font-weight:600;color:${trackColor};margin-top:3px">${dm.track || ''}</div>
     </div>
   </div>
-</div>
+  <div class="info-row" style="align-items:flex-start">
+    <span class="info-label">值神含義</span>
+    <span class="info-value" style="line-height:1.6">${dm.meaning || dailyDeity.Desc || '─'}</span>
+  </div>
+  <div class="info-row" style="align-items:flex-start">
+    <span class="info-label">五行</span>
+    <span class="info-value" style="line-height:1.6">${dm.element || '─'}</span>
+  </div>
+  <div class="info-row" style="align-items:flex-start">
+    <span class="info-label">曆法含義</span>
+    <span class="info-value" style="line-height:1.6">${dm.calendar || '─'}</span>
+  </div>
+  <div class="info-row" style="align-items:flex-start">
+    <span class="info-label">實質影響</span>
+    <span class="info-value" style="line-height:1.6;color:${trackColor}">${dm.impact || '─'}</span>
+  </div>
+</div>`;
+})()}
 
 <!-- 胎神 -->
 <div class="card">

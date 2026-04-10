@@ -1,5 +1,7 @@
 package zodiac
 
+import "fmt"
+
 // TwelveOfficers 標注建除十二神
 var TwelveOfficers = []string{
 	"建", "除", "滿", "平", "定", "執",
@@ -106,32 +108,14 @@ type MansionInfo struct {
 	Index    int    // 索引 0-27
 }
 
-// GetTwentyEightMansion 根據日柱干支計算當日值日星宿
-// 算法：以日支為基準，配合節氣月份推算
-// 正月起角，二月起奎，三月起胃，四月起畢，五月起參，六月起鬼
-// 七月起張，八月起角，九月起奎，十月起胃，十一月起畢，十二月起參
-// 每月30天，按日支順推
-func GetTwentyEightMansion(month int, dayStem int, dayBranch int) MansionInfo {
-	// 各月起始星宿索引
-	monthStartMansion := []int{
-		0,  // 正月 - 角
-		14, // 二月 - 奎
-		16, // 三月 - 胃
-		18, // 四月 - 畢
-		20, // 五月 - 參
-		22, // 六月 - 鬼
-		25, // 七月 - 張
-		0,  // 八月 - 角
-		14, // 九月 - 奎
-		16, // 十月 - 胃
-		18, // 十一月 - 畢
-		20, // 十二月 - 參
-	}
-
-	// 計算偏移：使用地支索引
-	startIdx := monthStartMansion[(month-1)%12]
-	offset := dayBranch
-	mansionIdx := (startIdx + offset) % 28
+// GetTwentyEightMansion 根據公曆日期計算當日值日星宿。
+//
+// 採用「公曆實際天數 A」口徑，對應零基索引公式：
+// mansionIndex = (A + 24) % 28
+// 其中 A 為公曆絕對天數（1-01-01 為 1）。
+func GetTwentyEightMansion(year int, month int, day int) MansionInfo {
+	a := gregorianAbsoluteDays(year, month, day)
+	mansionIdx := (a + 24) % 28
 
 	m := TwentyEightMansions[mansionIdx]
 	return MansionInfo{
@@ -142,6 +126,47 @@ func GetTwentyEightMansion(month int, dayStem int, dayBranch int) MansionInfo {
 		Element:  m.Element,
 		Index:    mansionIdx,
 	}
+}
+
+func gregorianAbsoluteDays(year int, month int, day int) int {
+	monthDays := [...]int{0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
+
+	y := year - 1
+	days := y*365 + y/4 - y/100 + y/400
+
+	for m := 1; m < month; m++ {
+		days += monthDays[m]
+	}
+	if month > 2 && isGregorianLeapYear(year) {
+		days++
+	}
+
+	return days + day
+}
+
+func isGregorianLeapYear(year int) bool {
+	if year%400 == 0 {
+		return true
+	}
+	if year%100 == 0 {
+		return false
+	}
+	return year%4 == 0
+}
+
+// sexagenaryDayIndex 將日干支索引（天干 0-9, 地支 0-11）還原為六十甲子序號（0-59）。
+func sexagenaryDayIndex(dayStem int, dayBranch int) int {
+	stem := ((dayStem % 10) + 10) % 10
+	branch := ((dayBranch % 12) + 12) % 12
+
+	for i := 0; i < 60; i++ {
+		if i%10 == stem && i%12 == branch {
+			return i
+		}
+	}
+
+	// 理論上干支配對必有解；保底返回地支值以避免 panic。
+	return branch
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -190,6 +215,22 @@ func GetDailyDeity(dayBranch int) DailyDeityInfo {
 	}
 }
 
+// GetDailyDeityByMonthBranch 根據月支+日支計算當日值神（主流黃道黑道口徑）。
+// 口訣：子午月青龍起申，丑未月青龍起戌，寅申月青龍起子，
+// 卯酉月青龍起寅，辰戌月青龍起辰，巳亥月青龍起午。
+func GetDailyDeityByMonthBranch(monthBranch int, dayBranch int) DailyDeityInfo {
+	// 每個月支對應「青龍所在日支」起點。
+	qStartByMonthBranch := []int{8, 10, 0, 2, 4, 6, 8, 10, 0, 2, 4, 6}
+	start := qStartByMonthBranch[((monthBranch%12)+12)%12]
+	idx := (dayBranch - start + 12) % 12
+	d := DailyDeities[idx]
+	return DailyDeityInfo{
+		Name: d.Name,
+		Type: d.Type,
+		Desc: d.Desc,
+	}
+}
+
 // ═══════════════════════════════════════════════════════════
 // 胎神 (Fetal God)
 // ═══════════════════════════════════════════════════════════
@@ -201,34 +242,32 @@ type FetalGodInfo struct {
 	Taboo       string // 禁忌事項
 }
 
-// GetFetalGod 根據日干計算當日胎神位置
-// 算法：甲己之日占門房，乙庚碓磨莫移方
-//
-//	丙辛廚灶莫相干，丁壬倉庫忌修弄
-//	戊癸房床若移動，不招瘟疫也瘟癀
+// GetFetalGod 根據日干計算當日胎神位置（相容舊介面，僅保留日干層級）。
+// Deprecated: 優先使用 GetFetalGodByDayPillar(dayStem, dayBranch)。
 func GetFetalGod(dayStem int) FetalGodInfo {
-	positions := []struct {
-		Pos  string
-		Desc string
-		Tabu string
-	}{
-		{"門外東南", "甲日胎神在門外東南", "忌修門、動土"},         // 甲
-		{"碓磨廁外東南", "乙日胎神在碓磨廁外東南", "忌移動碓磨、修廁"},   // 乙
-		{"廚灶爐外正南", "丙日胎神在廚灶爐外正南", "忌修廚灶、動爐"},    // 丙
-		{"倉庫廁外東南", "丁日胎神在倉庫廁外東南", "忌修倉庫、動廁"},    // 丁
-		{"房床廁外正南", "戊日胎神在房床廁外正南", "忌移動房床、修廁"},   // 戊
-		{"占門床外正南", "己日胎神在占門床外正南", "忌修門、移動床"},    // 己
-		{"碓磨廁外正南", "庚日胎神在碓磨廁外正南", "忌移動碓磨、修廁"},   // 庚
-		{"廚灶廁外西南", "辛日胎神在廚灶廁外西南", "忌修廚灶、動廁"},    // 辛
-		{"倉庫雞棲外東南", "壬日胎神在倉庫雞棲外東南", "忌修倉庫、動雞棲"}, // 壬
-		{"占門床外東南", "癸日胎神在占門床外東南", "忌修門、移動床"},    // 癸
-	}
+	return GetFetalGodByDayPillar(dayStem, 0)
+}
 
-	p := positions[dayStem%10]
+var fetalGodBySexagenaryDay = []string{
+	"占門碓外東南", "碓磨廁外東南", "廚灶爐外正南", "倉庫門外正南", "房床棲外正南", "占門床外正南", "占碓磨外正南", "廚灶廁外西南", "倉庫爐外西南", "房床門外西南",
+	"門雞棲外西南", "碓磨床外西南", "廚灶碓外西南", "倉庫廁外西南", "房床爐外正南", "占大門外正南", "碓磨棲外正西", "廚灶床外正西", "倉庫碓外西北", "房床廁外西北",
+	"占門爐外西北", "門碓磨外西北", "廚灶棲外西北", "倉庫床外西北", "房床碓外正北", "占門廁外正北", "碓磨爐外正北", "廚灶門外正北", "倉庫棲外正北", "占房床房內北",
+	"占門碓房內北", "碓磨廁房內北", "廚灶爐房內北", "門倉庫房內北", "房床棲房內南", "占門床房內南", "占碓磨房內南", "廚灶廁房內南", "倉庫爐房內南", "房床門房內南",
+	"門雞棲房內北", "碓磨床房內北", "廚灶碓房內北", "倉庫廁房內北", "房床爐房內北", "占大門外東北", "碓磨棲外東北", "廚灶床外東北", "倉庫碓外東北", "房床廁外東北",
+	"占門爐外東北", "門碓磨外正東", "廚灶棲外正東", "倉庫床外正東", "房床碓外正東", "占門廁外正東", "碓磨爐外東南", "廚灶門外東南", "倉庫棲外東南", "占房床外東南",
+}
+
+// GetFetalGodByDayPillar 根據日干+日支計算胎神方位（60 甲子定表口徑）。
+func GetFetalGodByDayPillar(dayStem int, dayBranch int) FetalGodInfo {
+	idx := sexagenaryDayIndex(dayStem, dayBranch)
+	pos := fetalGodBySexagenaryDay[idx]
+	desc := fmt.Sprintf("胎神占方：%s", pos)
+	tabu := fmt.Sprintf("忌在%s方位動土、修造、敲打、搬移重物", pos)
+
 	return FetalGodInfo{
-		Position:    p.Pos,
-		Description: p.Desc,
-		Taboo:       p.Tabu,
+		Position:    pos,
+		Description: desc,
+		Taboo:       tabu,
 	}
 }
 
@@ -245,9 +284,10 @@ type ClashShaInfo struct {
 }
 
 // GetClashSha 根據日支計算當日沖煞
-// 算法：子午相沖、丑未相沖、寅申相沖、卯酉相沖、辰戌相沖、巳亥相沖
-//
-//	沖即為煞位，如子午相沖，午日沖子(鼠)，煞在北方
+// 算法：
+//  1. 子午相沖、丑未相沖、寅申相沖、卯酉相沖、辰戌相沖、巳亥相沖
+//  2. 煞方採主流通用四正位映射（依日支）：
+//     子辰申 -> 煞南；丑巳酉 -> 煞東；寅午戌 -> 煞北；卯未亥 -> 煞西
 func GetClashSha(dayBranch int) ClashShaInfo {
 	// 相沖關係：子(0)<->午(6), 丑(1)<->未(7), 寅(2)<->申(8), 卯(3)<->酉(9), 辰(4)<->戌(10), 巳(5)<->亥(11)
 	clashMap := map[int]int{
@@ -259,31 +299,31 @@ func GetClashSha(dayBranch int) ClashShaInfo {
 		5: 11, 11: 5, // 巳亥沖
 	}
 
-	// 地支對應方向
-	branchDirection := map[int]string{
-		0:  "北",  // 子
-		1:  "東北", // 丑
-		2:  "東北", // 寅
-		3:  "東",  // 卯
-		4:  "東南", // 辰
-		5:  "東南", // 巳
-		6:  "南",  // 午
-		7:  "西南", // 未
-		8:  "西南", // 申
-		9:  "西",  // 酉
-		10: "西北", // 戌
-		11: "西北", // 亥
+	// 主流日支煞方（四正位）
+	shaByDayBranch := map[int]string{
+		0:  "南", // 子
+		1:  "東", // 丑
+		2:  "北", // 寅
+		3:  "西", // 卯
+		4:  "南", // 辰
+		5:  "東", // 巳
+		6:  "北", // 午
+		7:  "西", // 未
+		8:  "南", // 申
+		9:  "東", // 酉
+		10: "北", // 戌
+		11: "西", // 亥
 	}
 
 	clashIdx := clashMap[dayBranch]
 	clashBranch := EarthlyBranches[clashIdx]
 	clashAnimal := ZodiacAnimals[clashIdx]
-	shaDir := branchDirection[clashIdx]
+	shaDir := shaByDayBranch[dayBranch]
 
 	return ClashShaInfo{
 		ClashZodiac:  "沖" + clashAnimal,
 		ClashBranch:  clashBranch,
 		ShaDirection: "煞" + shaDir,
-		ShaDesc:      clashBranch + "方(" + shaDir + ")諸事不宜",
+		ShaDesc:      shaDir + "方諸事不宜",
 	}
 }

@@ -4,6 +4,8 @@
 GO_CHECK_ENV = CGO_LDFLAGS='-Wl,-w'
 
 dev:
+	@chmod +x scripts/dev-clean.sh
+	bash scripts/dev-clean.sh
 	@chmod +x scripts/sync-contracts.sh
 	bash scripts/sync-contracts.sh
 	bash -c 'set -a; . ./.env.ports; set +a; go run ./cmd/server/main.go'

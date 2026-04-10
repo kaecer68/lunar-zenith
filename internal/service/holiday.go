@@ -245,6 +245,10 @@ func (s *HolidayService) getTaiwanObservances(t time.Time) []TaiwanHoliday {
 		observances = append(observances, TaiwanHoliday{Name: "祖父母節", IsHoliday: false, Category: TypeFestival})
 	}
 
+	if md == easterSunday(t.Year()).Format("0102") {
+		observances = append(observances, TaiwanHoliday{Name: "復活節", IsHoliday: false, Category: TypeFestival})
+	}
+
 	if md == fmt.Sprintf("04%02d", qingmingDay(t.Year())) {
 		observances = append(observances, TaiwanHoliday{Name: "清明節", IsHoliday: true, Category: TypePublicHoliday})
 	}
@@ -305,6 +309,27 @@ func thirdSundayOfJune(year int) time.Time {
 		t = t.AddDate(0, 0, 1)
 	}
 	return t.AddDate(0, 0, 14)
+}
+
+// easterSunday 回傳指定年份的復活節主日（Gregorian, UTC）。
+// 使用 Anonymous Gregorian algorithm（Meeus/Jones/Butcher）。
+func easterSunday(year int) time.Time {
+	a := year % 19
+	b := year / 100
+	c := year % 100
+	d := b / 4
+	e := b % 4
+	f := (b + 8) / 25
+	g := (b - f + 1) / 3
+	h := (19*a + b - d - g + 15) % 30
+	i := c / 4
+	k := c % 4
+	l := (32 + 2*e + 2*i - h - k) % 7
+	m := (a + 11*h + 22*l) / 451
+	month := (h + l - 7*m + 114) / 31
+	day := ((h + l - 7*m + 114) % 31) + 1
+
+	return time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
 }
 
 func qingmingDay(year int) int {

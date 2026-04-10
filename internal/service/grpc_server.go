@@ -33,6 +33,8 @@ func (s *GrpcServer) GetCalendar(ctx context.Context, req *lunarv1.GetCalendarRe
 
 	// 2. 獲取曆法數據
 	pt := celestial.NewPrecisionTime(t)
+	monthSample := time.Date(t.Year(), t.Month(), t.Day(), 23, 0, 0, 0, t.Location())
+	monthPillars := zodiac.GetAstrologicalPillar(celestial.NewPrecisionTime(monthSample))
 
 	// 3. 獲取四柱
 	pillars := zodiac.GetAstrologicalPillar(pt)
@@ -47,17 +49,17 @@ func (s *GrpcServer) GetCalendar(ctx context.Context, req *lunarv1.GetCalendarRe
 	st := celestial.GetSolarTerm(pt.JDE)
 
 	// 7. 獲取神煞
-	officer := zodiac.GetTwelveOfficer(pillars.Month.BranchIndex, pillars.Day.BranchIndex)
+	officer := zodiac.GetTwelveOfficer(monthPillars.Month.BranchIndex, pillars.Day.BranchIndex)
 	ss := zodiac.GetYearShenSha(pillars.Year.BranchIndex)
 
-	// 8. 黃曆宜忌 (v1.3.0 新增)
-	suitable, avoidable, directions := CalculateAlmanac(officer, pillars.Day.StemIndex)
+	// 8. 黃曆宜忌（主流對齊 v1）
+	almanacCtx := MainstreamAlmanacContextV2(monthPillars.Month.BranchIndex, pillars.Day.BranchIndex)
+	suitable, avoidable, directions := CalculateAlmanacWithContext(officer, pillars.Day.StemIndex, almanacCtx)
 
 	// 9. 擴充神煞 (v1.4.0 新增)
-	solarMonth := zodiac.GetSolarMonth(st.Longitude)
-	mansion := zodiac.GetTwentyEightMansion(solarMonth, pillars.Day.StemIndex, pillars.Day.BranchIndex)
-	dailyDeity := zodiac.GetDailyDeity(pillars.Day.BranchIndex)
-	fetalGod := zodiac.GetFetalGod(pillars.Day.StemIndex)
+	mansion := zodiac.GetTwentyEightMansion(t.Year(), int(t.Month()), t.Day())
+	dailyDeity := zodiac.GetDailyDeityByMonthBranch(monthPillars.Month.BranchIndex, pillars.Day.BranchIndex)
+	fetalGod := zodiac.GetFetalGodByDayPillar(pillars.Day.StemIndex, pillars.Day.BranchIndex)
 	clashSha := zodiac.GetClashSha(pillars.Day.BranchIndex)
 
 	// 10. 農曆節日 (v1.4.0 新增)

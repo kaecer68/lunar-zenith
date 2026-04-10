@@ -45,6 +45,8 @@ internal/service/
 - **Error Handling**: 返回 `error`, 不 panic (與 `cmd/` 區分)
 - **Stateless**: 服務無狀態，支持並發請求
 - **JSON Charset**: REST 響應標頭 `Content-Type: application/json; charset=utf-8`
+- **Almanac Scope**: 現行宜忌是「建除主表 + 日干方位」基線模型；若要對齊主流通書，需明確新增規則層與仲裁順序，不可隱性覆蓋。
+- **Rule Provenance**: 每次調整宜忌規則，必須在 `SKILLS.md` 記錄來源（書目/網站樣本/流派）與決策優先級。
 
 ## ANTI-PATTERNS
 
@@ -70,6 +72,11 @@ internal/service/
 go test ./internal/service/... -v
 ```
 
+When changing almanac suitable/avoidable logic:
+- Add or update deterministic test fixtures in service layer.
+- Verify REST and gRPC remain aligned for almanac fields.
+- Keep a small date-based parity set against the declared reference source.
+
 ## CONFIGURATION
 
 | Env Var | Default | Description |
@@ -82,3 +89,4 @@ go test ./internal/service/... -v
 - Holiday data: 2024 sample only (expand needed)
 - Contract sync: API must match `contracts/openapi/lunar-zenith.yaml`
 - Stateless, concurrent-safe
+- Almanac divergence from third-party products is expected unless their rule stack and precedence are explicitly adopted.

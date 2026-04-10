@@ -34,3 +34,10 @@ for port in "${ports[@]}"; do
     kill $pids 2>/dev/null || true
   fi
 done
+
+# 補強：有些情況下埠已切換或短暫釋放，仍會殘留舊的 go run 進程。
+residual_pids="$(pgrep -f "go run ./cmd/server/main.go" || true)"
+if [[ -n "$residual_pids" ]]; then
+  echo "[dev-clean] 清理殘留 server 進程: $residual_pids"
+  kill $residual_pids 2>/dev/null || true
+fi

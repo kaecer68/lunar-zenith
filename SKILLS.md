@@ -1,8 +1,8 @@
 # Lunar-Zenith Skills Map
 
 **Purpose**: 本文件提供 AI 助手快速了解黃曆計算系統與本專案實現的知識地圖。
-**Version**: 1.2.0  
-**Updated**: 2026-04-09  
+**Version**: 1.3.1  
+**Updated**: 2026-04-10  
 **For**: AI Assistants working on lunar-zenith project
 
 ---
@@ -27,6 +27,12 @@
 3. 閏月是第一個沒有中氣的月份
 4. 中氣 (Major Solar Term): 雨水、春分、穀雨、小滿、夏至、大暑、處暑、秋分、霜降、小雪、冬至、大寒
 ```
+
+**工程落地要點（本專案）**:
+- 以冬至到冬至建立 `sui` 週期，先判定是否為 13 月歲。
+- 以「月區間內是否含中氣」判定閏月，閏月取該歲第一個無中氣月。
+- 月首以朔（合朔）決定，並採本地民用日（UTC+8）語義做邊界歸屬，避免同日稍晚合朔造成月份錯置。
+- 禁止以年份硬編碼修補（例如僅針對 2033 特判）；年份對照表僅可用於驗證，不可作為運算主邏輯。
 
 **範例**: 若某月份只有「清明」(節氣) 沒有「穀雨」(中氣)，則此月為閏月。
 
@@ -93,9 +99,9 @@ JD = 365.25*(y+4716) + 30.6001*(m+1) + d + b - 1524.5
 
 **代碼位置**: `pkg/celestial/solar.go:SolarLongitude()`
 
-### 2.4 月球位置計算 (ELP-2000)
+### 2.4 月球位置與朔日計算
 
-**方法**: ELP-2000/82 (Éphéméride Lunaire Parisienne) 精簡版
+**方法**: ELP-2000/82 + Meeus 真朔近似 + 數值根搜尋（並優先高精度曆表）
 
 **主要週期項**:
 - 月球平黃經
@@ -104,7 +110,15 @@ JD = 365.25*(y+4716) + 30.6001*(m+1) + d + b - 1524.5
 - 月球平緯角
 - 日月黃經差
 
-**代碼位置**: `pkg/celestial/moon.go:MoonLongitude()`
+**代碼位置**:
+- `pkg/celestial/moon.go:MoonLongitude()`
+- `pkg/celestial/moon.go:FindNewMoon()`
+- `pkg/celestial/moon.go:PreviousNewMoon()`
+
+**實務重點**:
+- 先用 Meeus 真朔近似提供收斂初值，再用數值法細化合朔時刻。
+- 朔日與節氣比較需在 JDE 軸上完成，再映射到本地民用日。
+- 高精度來源不可用時才 fallback，且需維持輸出單調與邊界穩定。
 
 ### 2.5 二十四節氣 (24 Solar Terms)
 
@@ -287,16 +301,18 @@ BranchIndex = 40 % 12 = 4 (辰)
 - **西方白虎**: 奎、婁、胃、昴、畢、觜、參
 - **南方朱雀**: 井、鬼、柳、星、張、翼、軫
 
-**各月起始**:
+**計算方式（已校正）**:
+採用「公曆實際天數」口徑，對應零基索引公式：
 ```
-正月起角、二月起奎、三月起胃、四月起畢
-五月起參、六月起鬼、七月起張、八月起角
-九月起奎、十月起胃、十一月起畢、十二月起參
+A = 公曆絕對天數（1-01-01 為 1）
+mansionIndex = (A + 24) % 28
 ```
 
-**計算**: `mansionIdx = (monthStart + dayBranch) % 28`
+**代碼**: `pkg/zodiac/shensha.go:GetTwentyEightMansion(year, month, day)`
 
-**代碼**: `pkg/zodiac/shensha.go:GetTwentyEightMansion()`
+**說明**:
+- 直接基於公曆日期計算星宿值日，避免月份變數引入的複雜性
+- 輸入為公曆年月日，輸出為 MansionInfo 結構（包含名稱、動物、全名、宮位、五行、索引）
 
 ### 4.4 十二值神 (Daily Deities)
 
@@ -319,22 +335,22 @@ BranchIndex = 40 % 12 = 4 (辰)
 
 ### 4.5 胎神 (Fetal God)
 
-**計算依據**: 日干
+**計算方式（已校正）**:
+採用「60甲子日柱定表」口徑，根據日干+日支（完整日柱）計算胎神方位。
 
-| 日干 | 胎神位置 | 禁忌 |
-|------|----------|------|
-| 甲 | 門外東南 | 忌修門、動土 |
-| 乙 | 碓磨廁外東南 | 忌移動碓磨 |
-| 丙 | 廚灶爐外正南 | 忌修廚灶 |
-| 丁 | 倉庫廁外東南 | 忌修倉庫 |
-| 戊 | 房床廁外正南 | 忌移動房床 |
-| 己 | 占門床外正南 | 忌修門、移動床 |
-| 庚 | 碓磨廁外正南 | 忌移動碓磨 |
-| 辛 | 廚灶廁外西南 | 忌修廚灶 |
-| 壬 | 倉庫雞棲外東南 | 忌修倉庫 |
-| 癸 | 占門床外東南 | 忌修門、移動床 |
+**日柱映射**:
+- 60甲子日柱序列 (0-59) 映射到對應胎神位置
+- 每個日柱有唯一的胎神占方（例：甲子(0)→占門碓外東南、甲午(30)→房床門外西南）
+- 相比舊版本（僅基於日干10種）精度提升 6 倍
 
-**代碼**: `pkg/zodiac/shensha.go:GetFetalGod()`
+**代碼**:
+- 新介面：`pkg/zodiac/shensha.go:GetFetalGodByDayPillar(dayStem, dayBranch)` ✅
+- 舊介面（不推薦）：`GetFetalGod(dayStem)` (Deprecated)
+
+**輸出**:
+- `Position`: 胎神位置（例：房床棲房內南）
+- `Description`: 詳細說明
+- `Taboo`: 禁忌事項
 
 ### 4.6 沖煞 (Clash & Sha)
 
@@ -344,7 +360,11 @@ BranchIndex = 40 % 12 = 4 (辰)
 卯酉相沖、辰戌相沖、巳亥相沖
 ```
 
-**煞方**: 被沖地支的方位
+**煞方（主流口徑）**: 依日支採四正位
+- 子辰申 -> 煞南
+- 丑巳酉 -> 煞東
+- 寅午戌 -> 煞北
+- 卯未亥 -> 煞西
 
 **代碼**: `pkg/zodiac/shensha.go:GetClashSha()`
 
@@ -354,10 +374,19 @@ BranchIndex = 40 % 12 = 4 (辰)
 
 ### 5.1 宜忌計算邏輯
 
-**主要依據**:
-1. **建除十二神** (最重要)
-2. **日干** (輔助判斷)
-3. **值神** (吉凶參考)
+**目前實作（Baseline + Mainstream v2）**:
+1. 以月支、日支計算當日建除十二神（主決策）。
+2. 依建除值（建/除/滿/.../閉）查固定「宜/忌」對照表。
+3. 神煞層 v1：依值神吉凶型別（吉/凶）增補宜忌項目。
+4. 神煞層 v2：對開/成/滿值日套用主流對齊增強包（民用吉事提升、常見忌事收斂、部分事項中立抑制）。
+5. 衝突仲裁：同事項同時出現在宜與忌時，採優先級：`avoidable_strong > neutral_strong > suitable_strong > avoidable > suitable`。
+6. 以日干查「財神/喜神/福神/文曲」方位。
+
+**重要邊界**:
+- 目前僅啟用值神吉凶型別的神煞增補（v1），尚未加入完整德煞、歲破/月破等全量規則。
+- v2 目前覆蓋開/成/滿值日，其餘值日主流規則仍待擴充。
+- `二十八宿/胎神/沖煞` 目前仍屬展示資訊，不直接覆寫 `suitable/avoidable`。
+- 因此本專案屬「可解釋、可重現」的分層演進模型，尚非全量通書流派引擎。
 
 ### 5.2 建除十二神對應宜忌
 
@@ -396,6 +425,42 @@ BranchIndex = 40 % 12 = 4 (辰)
 | 癸 | 西北 | 西北 | 東 | 東南 |
 
 **代碼**: `internal/service/almanac.go:GetDeityDirections()`
+
+**決策入口（程式）**:
+- `internal/service/almanac.go:CalculateAlmanacDetailed()`：可追溯決策（含 hits/source）。
+- `internal/service/almanac.go:CalculateAlmanacDetailedWithContext()`：可指定規則口徑與開關。
+- `internal/service/almanac.go:CalculateAlmanac()`：相容舊介面，回傳最終 `suitable/avoidable`。
+
+### 5.4 流派來源與主流差異說明
+
+**來源定位**:
+- 建除十二神與神煞體系屬傳統擇日學常見基礎框架。
+- 現行實作採「建除主表」作為核心決策，對應本專案可驗證、可維護的第一層能力。
+
+**與主流農民曆可能不同的原因**:
+1. 主流通書常疊加多層規則（如黃黑道值神、德煞、歲破月破、事項優先級）並做衝突仲裁。
+2. 不同來源對同一事項（例：祭祀、安葬、動土）存在流派差異與權重差異。
+3. 日界、時區、子初/子正換日口徑不同，也會造成同日結果差異。
+
+**維護原則**:
+- 不可將「單一網站結果」直接硬編碼進宜忌表。
+- 若導入新流派規則，需先定義資料來源、優先級、衝突仲裁規則，並補對拍測試。
+
+### 5.5 升級到主流通書口徑的實作框架
+
+建議採分層決策：
+1. **Base Layer**：建除主表（現有）。
+2. **Shensha Layer**：加入吉神/凶煞對事項的增刪與降權。
+3. **Conflict Layer**：同時出現宜與忌時，依優先級做裁決並輸出原因。
+4. **Explain Layer**：回傳每個事項的來源與命中規則（供 UI 與維運追蹤）。
+
+驗證要求：
+- 至少維護一組「權威對照日曆樣本」做逐日對拍。
+- 每次規則調整需保留差異報告，不得只改期望值不解釋來源。
+
+對拍測試落點：
+- `internal/service/almanac_parity_test.go`
+- 預設為觀測模式（記錄差異不阻斷）；設 `STRICT_TONGSHU_PARITY=1` 可切換為硬斷言。
 
 ---
 
@@ -599,9 +664,10 @@ GetHourSexagenary(dayStem, hourBranch) - 時柱
 GetHourBranch(hour) - 時支計算
 GetTwelveOfficer(monthBranch, dayBranch) - 建除十二神
 GetYearShenSha(yearBranch) - 年支神煞
-GetTwentyEightMansion(month, dayStem, dayBranch) - 二十八星宿
+GetTwentyEightMansion(year, month, day) - 二十八星宿（公曆絕對天數口徑）
 GetDailyDeity(dayBranch) - 值神
-GetFetalGod(dayStem) - 胎神
+GetFetalGodByDayPillar(dayStem, dayBranch) - 胎神（60甲子日柱定表）
+GetFetalGod(dayStem) - 胎神（已棄用，僅保留相容層）
 GetClashSha(dayBranch) - 沖煞
 ```
 
@@ -627,21 +693,17 @@ GetDeityDirections(dayStem) - 吉神方位
 
 ### 8.1 閏月計算
 
-**現況**: 已實作冬至到冬至週期 + 無中氣月判定，2023/2025 等風險年主測試已通過。
+**現況（2026-04-10）**: 閏月主算法已完成「冬至週期錨定 + 無中氣月判定 + 民用日邊界歸屬」整合。
 
-**2026-04-09 驗證快照（以測試為準）**:
-- 已執行：`go test ./pkg/zodiac/... -v`
-- 結果：`PASS`（套件通過）
-- 但以下案例仍為 `SKIP/TODO`，不可宣稱「全年份已證真」：
-  - `2001-01-24`（春節邊界，與授權曆書尚有 1 日差異）
-  - `2020-05-23`（閏四月初一，`IsLeap` 尚待精化）
-  - `2033`（已知複雜年，待授權真值）
+**已完成的高風險驗證**:
+- `pkg/zodiac/lunar_engine_official_leap_test.go`：1984、2001、2014、2020、2025、2033 皆為嚴格斷言。
+- `pkg/zodiac/lunar_engine_edge_test.go`：2001 春節邊界、2020 閏四月邊界已改為硬斷言（非 skip）。
+- `internal/service/lunar_leap_api_test.go`：風險年 fixture（含閏月欄位與節日一致性）為嚴格檢查。
 
-**仍需注意**:
-- 2001-01-24（春節邊界）
-- 2020-05-23（閏四月初一邊界）
-
-上述兩案已保留在邊界追蹤測試（skip + 診斷輸出），待朔日/日界處理再收斂後改為硬斷言。
+**實務技能要求**:
+- 先修演算法，再修測試；不得把測試期望改成迎合錯誤輸出。
+- 任何閏月邏輯改動都要同時跑 engine 層與 service 層驗證，避免 API 回傳語義漂移。
+- 若新增「疑難年」案例，需先補對照來源與測試 fixture，再宣稱修復完成。
 
 ### 8.2 Delta-T 精度
 
@@ -738,11 +800,31 @@ GetDeityDirections(dayStem) - 吉神方位
 
 只有在以下條件同時滿足時，才可對外聲明「閏年/閏月演算法已真正正確」：
 - `go test ./pkg/zodiac/... -v` 全通過
-- 邊界 fixture（2001、2020、2033）不再 `SKIP/TODO`
+- 邊界 fixture（至少含 2001、2020、2033）皆為硬斷言且通過
 - 與授權曆書/官方權威資料的對照樣本一致
+- service 層一致性測試（REST/gRPC 欄位與節日輸出）通過
+- 專案整體整合驗證（`make verify-all`）通過
 
 若任一條件未滿足，正確說法應為：
 - 「已驗證年份範圍內可信；未覆蓋或待授權年份不做全域正確性宣稱」
+
+**目前狀態（2026-04-10）**:
+- 上述門檻已達成於現行主分支測試快照。
+- 後續若變更朔日求解、節氣判定或月份歸屬邏輯，需重新滿足本門檻後才可維持同等聲明。
+
+### 10.2 閏月與節氣驗證操作技能
+
+建議最小驗證序列（開發迭代）：
+- `go test ./pkg/zodiac -run "TestLunarEngineLeap|Test.*Leap" -v`
+- `go test ./pkg/zodiac -run "TestLunarEngineEdge|Test.*Edge" -v`
+- `go test ./internal/service -run "TestCalendarAPI_LeapMonthRiskYearFixtures|TestCalendarAPI_LeapMonthFestivalConsistency|TestCalendarAPI_LeapMonthFieldsStayAligned" -v`
+
+發版前整合驗證：
+- `make verify-all`
+
+判讀重點：
+- 若 engine 層正確但 service 層失敗，通常是欄位映射或節日聚合一致性問題。
+- 若節氣邊界日不穩定，先檢查 JDE/Delta-T 與本地日界映射，再檢查測試資料本身。
 
 ---
 
