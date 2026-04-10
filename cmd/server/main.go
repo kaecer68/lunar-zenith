@@ -14,6 +14,8 @@ import (
 	"google.golang.org/grpc"
 )
 
+const serviceVersion = "v4.0.0"
+
 func main() {
 	grpcPort, err := runtimecfg.GetRequiredPort("LUNAR_GRPC_PORT", "GRPC_PORT")
 	if err != nil {
@@ -62,7 +64,7 @@ func main() {
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"project": "Lunar-Zenith (算曆之巔)",
-			"version": "v1.4.0",
+			"version": serviceVersion,
 			"status":  "running",
 		})
 	})

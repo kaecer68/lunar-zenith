@@ -21,8 +21,8 @@
 - Preferred local sequence:
 	1. `make sync-contracts`
 	2. `make dev`
-- Validation commands: `make test`, `make vet`, `make build`, `make verify-all`.
-- `make verify-all` is the main integration gate (`verify-contracts` + `test` + `vet` + `build`).
+- Validation commands: `make check-docs-consistency`, `make test`, `make vet`, `make build`, `make verify-all`.
+- `make verify-all` is the main integration gate (`verify-contracts` + `check-docs-consistency` + `test` + `vet` + `build`).
 - `make dev` syncs contracts, loads `.env.ports`, and runs `cmd/server/main.go`.
 - `make dev-clean` is recovery-only for stale listeners.
 - The Makefile runs Go commands with `CGO_LDFLAGS='-Wl,-w'`; keep parity with that environment when reproducing build or test behavior manually.
@@ -40,6 +40,9 @@
 ## Conventions
 
 - Contract-first: update OpenAPI and protobuf contracts before changing handlers or generated APIs.
+- For gRPC contract governance, keep `proto/lunar.proto` and `contracts/proto/lunar.proto` byte-for-byte synchronized.
+- Keep `cmd/server/main.go`, `contracts/openapi/lunar-zenith.yaml`, and the README version badge aligned for every release.
+- Keep REST nested JSON fields in snake_case; do not reintroduce PascalCase child keys under `shen_sha`, `mansion`, `daily_deity`, `fetal_god`, or `clash_sha`.
 - Do not manually edit `.env.ports`; use `make sync-contracts` and `make verify-contracts`.
 - Keep services stateless and prefer constructor injection patterns already used in `internal/service/aggregator.go`.
 - Use Traditional Chinese for calendar-domain names and user-facing cultural labels.
@@ -60,6 +63,8 @@
 ## Common Pitfalls
 
 - Do not run `make dev` before `make sync-contracts` when contract ports may be stale.
+- Do not update `proto/lunar.proto` without syncing `contracts/proto/lunar.proto` and rerunning `make check-docs-consistency`.
+- Do not document or ship PascalCase nested REST examples; treat them as stale contract drift.
 - Do not hand-edit `.env.ports`; regenerate via `make sync-contracts`.
 - Do not claim leap-month correctness without explicit boundary-year validation.
 - Do not claim leap-month/solar-term correctness unless boundary fixtures are hard assertions (not skip/todo) and cross-layer tests pass.

@@ -799,7 +799,7 @@ const SOLAR_TERMS_INFO = {
 };
 
 // 版本戳：用於快速確認是否載入最新嵌入頁面。
-const UI_REV = 'ui-rev-2026-04-10-1';
+const UI_REV = 'ui-rev-2026-04-11-2';
 
 // ── State ──────────────────────────────────
 let currentDate = new Date();
@@ -828,6 +828,16 @@ function getMoonPhaseInfo(elongation) {
     if (e < p.max || p.max === 360) return {...p, elongation: e};
   }
   return PHASE_NAMES[PHASE_NAMES.length-1];
+}
+
+function festivalTypeColor(type) {
+  if (type === '道教') return 'var(--accent)';
+  if (type === '佛教') return 'var(--purple)';
+  return 'var(--teal)';
+}
+
+function festivalTypeLabel(type) {
+  return type || '民俗';
 }
 
 async function getCalendarDataByDate(dateStr) {
@@ -914,11 +924,11 @@ function miniCalHTML(year, month, selectedDate, data) {
       // Lunar day from cache
       if (calendarCache[dateStr]) {
         const ld = calendarCache[dateStr].lunar;
-        if (ld && ld.Day) {
-          if (ld.Day === 1) {
-            lunarTxt = (ld.IsLeap?'閏':'') + LUNAR_MONTHS[ld.Month] + '月';
+        if (ld && ld.day) {
+          if (ld.day === 1) {
+            lunarTxt = (ld.is_leap ? '閏' : '') + LUNAR_MONTHS[ld.month] + '月';
           } else {
-            lunarTxt = LUNAR_NUMS[ld.Day] || '';
+            lunarTxt = LUNAR_NUMS[ld.day] || '';
           }
         }
       }
@@ -948,51 +958,46 @@ function renderData(d, data) {
   const wd = WEEKDAYS[new Date(d + 'T00:00:00').getDay()];
   const lunar = data.lunar || {};
   const pillars = data.pillars || {};
-  // REST 回應是 snake_case: solar_term (string) + solar_term_detail (object)
-  const stDetail = (data.solar_term_detail && typeof data.solar_term_detail === 'object')
-    ? data.solar_term_detail
+  // REST 回應是 snake_case: solar_term (object)
+  const stSource = (data.solar_term && typeof data.solar_term === 'object')
+    ? data.solar_term
     : {};
   const st = {
-    Name: (typeof data.solar_term === 'string' && data.solar_term) ? data.solar_term : (stDetail.name || ''),
-    Index: Number.isInteger(stDetail.index) ? stDetail.index : -1,
-    Longitude: (typeof stDetail.longitude === 'number') ? stDetail.longitude : 0,
+    name: stSource.name || '',
+    index: Number.isInteger(stSource.index) ? stSource.index : -1,
+    longitude: (typeof stSource.longitude === 'number') ? stSource.longitude : 0,
   };
   const dirs = data.directions || {};
   const shensha = data.shen_sha || [];
   const mansion = data.mansion || {};
-  const mansionFullName = mansion.FullName || `${mansion.Name || ''}${mansion.Element || ''}${mansion.Animal || ''}`;
+  const mansionFullName = mansion.full_name || `${mansion.name || ''}${mansion.element || ''}${mansion.animal || ''}`;
   const mansionMeta = MANSION_META[mansionFullName] || null;
   const dailyDeity = data.daily_deity || {};
   const fetalGod = data.fetal_god || {};
   const clashSha = data.clash_sha || {};
 
   // Lunar date display
-  const lunarMonth = lunar.Month || lunar.month || 1;
-  const lunarDay = lunar.Day || lunar.day || 1;
-  const lunarIsLeap = lunar.IsLeap || lunar.is_leap || false;
+  const lunarMonth = lunar.month || 1;
+  const lunarDay = lunar.day || 1;
+  const lunarIsLeap = lunar.is_leap || false;
   const lunarMonthStr = (lunarIsLeap ? '閏' : '') + (LUNAR_MONTHS[lunarMonth] || '?') + '月';
   const lunarDayStr = LUNAR_NUMS[lunarDay] || lunarDay || '?';
-  const lunarYear = lunar.Year || lunar.year || '';
+  const lunarYear = lunar.year || '';
 
   // Four pillars ganzhi strings
-  function gzStr(p) {
-    if (!p) return '??';
-    if (typeof p === 'string') return p;
-    const s = STEMS[p.StemIndex];
-    const b = BRANCHES[p.BranchIndex];
-    return (s||'?') + (b||'?');
-  }
-  const yearGZ = gzStr(pillars.Year || pillars.year);
-  const monthGZ = gzStr(pillars.Month || pillars.month);
-  const dayGZ = gzStr(pillars.Day || pillars.day);
-  const hourGZ = gzStr(pillars.Hour || pillars.hour);
+  const yearGZ = pillars.year || '??';
+  const monthGZ = pillars.month || '??';
+  const dayGZ = pillars.day || '??';
+  const hourGZ = pillars.hour || '??';
 
   // Year pillar animal
   let yearAnimal = '';
-  if (pillars.Year && ANIMALS[pillars.Year.BranchIndex]) yearAnimal = ANIMALS[pillars.Year.BranchIndex];
+  const yearBranch = yearGZ ? yearGZ.slice(-1) : '';
+  const yearBranchIdx = BRANCHES.indexOf(yearBranch);
+  if (yearBranchIdx >= 0) yearAnimal = ANIMALS[yearBranchIdx];
 
   // Moon phase
-  const solarLon = st.Longitude || 0;
+  const solarLon = st.longitude || 0;
   const moonLon = data.moon_longitude || 0;
   const elongation = data.moon_elongation !== undefined ? data.moon_elongation : ((moonLon - solarLon + 360) % 360);
   const moonInfo = getMoonPhaseInfo(elongation);
@@ -1004,19 +1009,16 @@ function renderData(d, data) {
   const offDesc = OFFICER_DESC[officer] || '';
 
   // Solar term info
-  const stDesc = SOLAR_TERMS_INFO[st.Name] || '';
+  const stDesc = SOLAR_TERMS_INFO[st.name] || '';
 
   // Holiday
   const hol = data.holiday_info || {};
   const chinaHol = data.china_holiday_info || {};
   const lunarFestivals = (data.lunar_festivals || []).map(f => ({
-    name: f?.name ?? f?.Name ?? '',
-    type: f?.type ?? f?.Type ?? '',
-    description: f?.description ?? f?.Description ?? '',
+    name: f?.name || '',
+    type: f?.type || '',
+    description: f?.description || '',
   }));
-
-  // Year label
-  const yearLabel = data.taoist ? data.taoist.replace('道曆 ','').replace(' 年','') + ' 道曆' : '';
 
   const calYear = currentDate.getFullYear();
   const calMonth = currentDate.getMonth()+1;
@@ -1043,8 +1045,8 @@ function renderData(d, data) {
         <div style="display:flex;flex-wrap:wrap;gap:6px">
           ${lunarFestivals.map(f => `
             <div style="background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;display:flex;align-items:center;gap:6px">
-              <span style="font-size:.85rem;font-weight:700;color:${f.type==='道教'?'var(--accent)':f.type==='佛教'?'var(--purple)':'var(--teal)'}">${f.name || '未命名節日'}</span>
-              <span style="font-size:.65rem;color:var(--text-dim);padding:1px 6px;background:var(--bg);border-radius:10px">${f.type || '民俗'}</span>
+              <span style="font-size:.85rem;font-weight:700;color:${festivalTypeColor(f.type)}">${f.name || '未命名節日'}</span>
+              <span style="font-size:.65rem;color:var(--text-dim);padding:1px 6px;background:var(--bg);border-radius:10px">${festivalTypeLabel(f.type)}</span>
             </div>
           `).join('')}
         </div>
@@ -1125,7 +1127,7 @@ ${(hol.name || chinaHol.name) ? `
   <div class="card-title">節氣 · 天文精算</div>
   <div class="solar-term-badge">
     <div>
-      <div class="solar-term-name">${st.Name || '─'}</div>
+      <div class="solar-term-name">${st.name || '─'}</div>
       <div class="solar-term-lon">☀ 太陽黃經 ${typeof solarLon === 'number' ? solarLon.toFixed(4)+'°' : '─'}</div>
     </div>
     <span class="solar-term-idx">當前節氣</span>
@@ -1218,12 +1220,12 @@ ${(hol.name || chinaHol.name) ? `
 <div class="card">
   <div class="card-title">神煞星曜</div>
   <div class="tags" style="margin-bottom:10px">
-    ${shensha.map(s=>`<span class="tag tag-shensha" title="${s.Description}">${s.Name}</span>`).join('')}
+    ${shensha.map(s=>`<span class="tag tag-shensha" title="${s.description || ''}">${s.name || ''}</span>`).join('')}
   </div>
   ${shensha.map(s=>`
     <div class="info-row">
-      <span class="info-label">${s.Name}</span>
-      <span class="info-value">${s.Description}</span>
+      <span class="info-label">${s.name || '—'}</span>
+      <span class="info-value">${s.description || '—'}</span>
     </div>`).join('')}
   ${shensha.length === 0 ? '<div style="color:var(--text-dim);font-size:.85rem">無特殊神煞</div>' : ''}
 </div>
@@ -1234,23 +1236,23 @@ ${(hol.name || chinaHol.name) ? `
 <div class="card">
   <div class="card-title">二十八星宿</div>
   <div style="display:flex;align-items:center;padding:8px 0">
-    <div style="font-size:2.5rem;font-weight:900;color:var(--accent);margin-right:14px">${mansion.Name}</div>
+    <div style="font-size:2.5rem;font-weight:900;color:var(--accent);margin-right:14px">${mansion.name || '—'}</div>
     <div style="flex:1">
       <div style="font-size:1.1rem;font-weight:700">${mansionFullName}</div>
-      <div style="font-size:.8rem;color:var(--text-dim);margin-top:3px">${mansion.Palace} · 五行${mansion.Element}</div>
+      <div style="font-size:.8rem;color:var(--text-dim);margin-top:3px">${mansion.palace || '—'} · 五行${mansion.element || '—'}</div>
     </div>
   </div>
   <div class="info-row">
     <span class="info-label">星宿</span>
-    <span class="info-value accent">${mansion.Name}${mansion.Element}${mansion.Animal}</span>
+    <span class="info-value accent">${mansion.name || ''}${mansion.element || ''}${mansion.animal || ''}</span>
   </div>
   <div class="info-row">
     <span class="info-label">宮位</span>
-    <span class="info-value">${mansion.Palace}</span>
+    <span class="info-value">${mansion.palace || '—'}</span>
   </div>
   <div class="info-row">
     <span class="info-label">五行</span>
-    <span class="info-value">${mansion.Element}</span>
+    <span class="info-value">${mansion.element || '—'}</span>
   </div>
   <div class="info-row" style="align-items:flex-start">
     <span class="info-label">吉凶</span>
@@ -1272,22 +1274,22 @@ ${(hol.name || chinaHol.name) ? `
 
 <!-- 值神 -->
 ${(()=>{
-  const dm = DEITY_META[dailyDeity.Name] || {};
+  const dm = DEITY_META[dailyDeity.name] || {};
   const isAuspicious = dm.track && dm.track.startsWith('黃道');
   const trackColor = isAuspicious ? 'var(--green)' : 'var(--red)';
-  const badgeColor = dailyDeity.Type==='吉'?'var(--green)':dailyDeity.Type==='凶'?'var(--red)':'#8888cc';
+  const badgeColor = dailyDeity.type==='吉'?'var(--green)':dailyDeity.type==='凶'?'var(--red)':'#8888cc';
   return `<div class="card">
   <div class="card-title">值神</div>
   <div style="display:flex;align-items:center;padding:8px 0">
-    <div style="font-size:2.2rem;font-weight:900;color:${badgeColor};margin-right:14px">${dailyDeity.Name}</div>
+    <div style="font-size:2.2rem;font-weight:900;color:${badgeColor};margin-right:14px">${dailyDeity.name || '—'}</div>
     <div style="flex:1">
-      <div style="font-size:1rem;font-weight:700;color:${badgeColor}">${dailyDeity.Name}（${dailyDeity.Type || '─'}）</div>
+      <div style="font-size:1rem;font-weight:700;color:${badgeColor}">${dailyDeity.name || '—'}（${dailyDeity.type || '─'}）</div>
       <div style="font-size:.82rem;font-weight:600;color:${trackColor};margin-top:3px">${dm.track || ''}</div>
     </div>
   </div>
   <div class="info-row" style="align-items:flex-start">
     <span class="info-label">值神含義</span>
-    <span class="info-value" style="line-height:1.6">${dm.meaning || dailyDeity.Desc || '─'}</span>
+    <span class="info-value" style="line-height:1.6">${dm.meaning || dailyDeity.desc || '─'}</span>
   </div>
   <div class="info-row" style="align-items:flex-start">
     <span class="info-label">五行</span>
@@ -1309,15 +1311,15 @@ ${(()=>{
   <div class="card-title">胎神</div>
   <div class="info-row">
     <span class="info-label">胎神位置</span>
-    <span class="info-value accent">${fetalGod.Position}</span>
+    <span class="info-value accent">${fetalGod.position || '—'}</span>
   </div>
   <div class="info-row">
     <span class="info-label">說明</span>
-    <span class="info-value">${fetalGod.Description}</span>
+    <span class="info-value">${fetalGod.description || '—'}</span>
   </div>
   <div class="info-row">
     <span class="info-label">禁忌</span>
-    <span class="info-value" style="color:var(--red)">${fetalGod.Taboo}</span>
+    <span class="info-value" style="color:var(--red)">${fetalGod.taboo || '—'}</span>
   </div>
   <div style="margin-top:10px;padding:10px;background:var(--surface2);border-radius:8px;font-size:.75rem;color:var(--text-dim);line-height:1.6">
     <div>胎神占方，孕婦當日須避開此方位</div>
@@ -1329,22 +1331,22 @@ ${(()=>{
 <div class="card">
   <div class="card-title">沖煞</div>
   <div style="display:flex;gap:10px;margin-bottom:10px">
-    <div style="flex:1;background:${clashSha.ClashZodiac?'#301818':'var(--surface2)'};border:1px solid ${clashSha.ClashZodiac?'#502828':'var(--border)'};border-radius:8px;padding:10px;text-align:center">
+    <div style="flex:1;background:${clashSha.clash_zodiac?'#301818':'var(--surface2)'};border:1px solid ${clashSha.clash_zodiac?'#502828':'var(--border)'};border-radius:8px;padding:10px;text-align:center">
       <div style="font-size:.7rem;color:var(--text-dim);margin-bottom:4px">相沖生肖</div>
-      <div style="font-size:1.3rem;font-weight:800;color:${clashSha.ClashZodiac?'var(--red)':'var(--text)'};letter-spacing:.1em">${clashSha.ClashZodiac || '─'}</div>
+      <div style="font-size:1.3rem;font-weight:800;color:${clashSha.clash_zodiac?'var(--red)':'var(--text)'};letter-spacing:.1em">${clashSha.clash_zodiac || '─'}</div>
     </div>
-    <div style="flex:1;background:${clashSha.ShaDirection?'#301818':'var(--surface2)'};border:1px solid ${clashSha.ShaDirection?'#502828':'var(--border)'};border-radius:8px;padding:10px;text-align:center">
+    <div style="flex:1;background:${clashSha.sha_direction?'#301818':'var(--surface2)'};border:1px solid ${clashSha.sha_direction?'#502828':'var(--border)'};border-radius:8px;padding:10px;text-align:center">
       <div style="font-size:.7rem;color:var(--text-dim);margin-bottom:4px">煞方</div>
-      <div style="font-size:1.3rem;font-weight:800;color:${clashSha.ShaDirection?'var(--red)':'var(--text)'};letter-spacing:.1em">${clashSha.ShaDirection || '─'}</div>
+      <div style="font-size:1.3rem;font-weight:800;color:${clashSha.sha_direction?'var(--red)':'var(--text)'};letter-spacing:.1em">${clashSha.sha_direction || '─'}</div>
     </div>
   </div>
   <div class="info-row">
     <span class="info-label">沖地支</span>
-    <span class="info-value">${clashSha.ClashBranch || '─'}</span>
+    <span class="info-value">${clashSha.clash_branch || '─'}</span>
   </div>
   <div class="info-row">
     <span class="info-label">煞說明</span>
-    <span class="info-value">${clashSha.ShaDesc || '─'}</span>
+    <span class="info-value">${clashSha.sha_desc || '─'}</span>
   </div>
   <div style="margin-top:10px;padding:10px;background:#301818;border:1px solid #502828;border-radius:8px;font-size:.75rem;color:var(--red);line-height:1.6">
     <div>⚠ 沖煞之日，對應生肖者宜謹慎行事</div>
@@ -1365,8 +1367,8 @@ ${(()=>{
       ${lunarFestivals.map(f => `
         <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-            <span style="font-size:1rem;font-weight:800;color:${f.type==='道教'?'var(--accent)':f.type==='佛教'?'var(--purple)':'var(--teal)'}">${f.name || '未命名節日'}</span>
-            <span style="font-size:.65rem;color:var(--text-dim);padding:2px 8px;background:var(--bg);border-radius:10px;border:1px solid var(--border)">${f.type || '民俗'}</span>
+            <span style="font-size:1rem;font-weight:800;color:${festivalTypeColor(f.type)}">${f.name || '未命名節日'}</span>
+            <span style="font-size:.65rem;color:var(--text-dim);padding:2px 8px;background:var(--bg);border-radius:10px;border:1px solid var(--border)">${festivalTypeLabel(f.type)}</span>
           </div>
           <div style="font-size:.78rem;color:var(--text-dim);line-height:1.5">${f.description || '—'}</div>
         </div>

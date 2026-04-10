@@ -13,6 +13,7 @@ type FestivalInfo struct {
 	Name        string `json:"name"`
 	Type        string `json:"type"`
 	Description string `json:"description"`
+	Priority    int    `json:"priority"`
 }
 
 // CalendarResponse 曆法全家桶：聚合所有維度的數據
@@ -134,6 +135,7 @@ func (a *Aggregator) GetCalendar(t time.Time) CalendarResponse {
 			Name:        f.Name,
 			Type:        f.Type,
 			Description: f.Description,
+			Priority:    f.Priority,
 		})
 	}
 

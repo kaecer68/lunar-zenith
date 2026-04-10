@@ -10,20 +10,21 @@ service LunarService {
 }
 
 message GetCalendarRequest {
-  string date = 1; // 格式: YYYY-MM-DD
+  string date = 1; // 可省略；格式: YYYY-MM-DD。省略時預設 Asia/Taipei 今日日期
 }
 
 message GetCalendarResponse {
   string gregorian_date = 1;
   double julian_day = 2;
   double delta_t = 3;
+  string lunar_date = 23;
   
   LunarInfo lunar = 4;
   string buddhist = 5;
   string taoist = 6;
   
   Pillars pillars = 7;
-  SolarTerm solar_term = 8;
+  SolarTerm solar_term = 8; // v2 起與 REST 完全同型的節氣物件
   
   string twelve_officer = 9;
   repeated ShenSha shen_sha = 10;
@@ -46,6 +47,8 @@ message GetCalendarResponse {
   // v1.5.0 新增欄位 - 西洋占星
   repeated WesternAstroInfo western_astro = 21; // 行星順逆行資訊
   repeated PlanetaryAspect aspects = 22;         // 行星相位/交匯資訊
+  double moon_longitude = 25;                    // 月球黃經（度）
+  double moon_elongation = 26;                   // 日月黃經差（度）
 }
 
 message LunarInfo {
@@ -135,7 +138,7 @@ message WesternAstroInfo {
   bool is_retrograde = 4;
   double longitude = 5;
   double speed = 6;
-  optional string next_station_date = 7;
+  optional string next_station_date = 7; // RFC3339 時間字串
   optional string station_type = 8;
 }
 

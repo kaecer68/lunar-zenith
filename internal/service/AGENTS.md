@@ -33,10 +33,10 @@ internal/service/
 | Symbol | Type | Role |
 |--------|------|------|
 | `HolidayService` | struct | 假期數據載入/查詢 |
-| `Aggregator` | struct | 服務聚合器 (依賴 HolidayService) |
+| `Aggregator` | struct | 服務聚合器 (依賴 Taiwan + China HolidayService) |
 | `GrpcServer` | struct | gRPC 服務器實現 |
 | `RestHandler` | struct | REST handler (Gin) |
-| `NewAggregator(holidaySvc)` | constructor | 創建聚合器 |
+| `NewAggregator(holidaySvc, chinaHolidaySvc)` | constructor | 創建聚合器 |
 | `RegisterRoutes(r *gin.Engine)` | method | REST 路由註冊 |
 
 ## CONVENTIONS
@@ -45,6 +45,7 @@ internal/service/
 - **Error Handling**: 返回 `error`, 不 panic (與 `cmd/` 區分)
 - **Stateless**: 服務無狀態，支持並發請求
 - **JSON Charset**: REST 響應標頭 `Content-Type: application/json; charset=utf-8`
+- **REST Naming**: 巢狀 JSON 物件也必須維持 snake_case；不要回傳 `Name` / `FullName` / `ClashZodiac` 這類 PascalCase 子鍵
 - **Almanac Scope**: 現行宜忌是「建除主表 + 日干方位」基線模型；若要對齊主流通書，需明確新增規則層與仲裁順序，不可隱性覆蓋。
 - **Rule Provenance**: 每次調整宜忌規則，必須在 `SKILLS.md` 記錄來源（書目/網站樣本/流派）與決策優先級。
 
@@ -54,23 +55,26 @@ internal/service/
 - ❌ 在 service 層調用 `log.Fatal()` (返回 error)
 - ❌ 繞過 `HolidayService` 直接讀取 JSON
 - ❌ 修改 protobuf 生成的 interface (實現 `LunarServiceServer` 即可)
+- ❌ 為 REST 巢狀物件重新引入 PascalCase JSON tag
 
 ## API ENDPOINTS
 
 - **REST**: `GET /v1/calendar?date=YYYY-MM-DD` → 完整曆法數據
 - **gRPC**: `LunarService.GetCalendar()`
-- **Health**: `GET /` → project, version, status
+- **Health**: `GET /health` → project, version, status
 
 ## DEPENDENCIES
 
 - **Internal**: `pkg/celestial/`, `pkg/zodiac/`
-- **External**: Gin, gRPC, `configs/holidays_2024_sample.json`
+- **External**: Gin, gRPC, `configs/holidays_tw_2024_2026.json`, `configs/holidays_cn_2024_2026.json`
 
 ## TESTING
 
 ```bash
 go test ./internal/service/... -v
 ```
+
+契約或 transport 變更完成後，請回到 repo 根目錄再跑一次 `make verify-all`。
 
 When changing almanac suitable/avoidable logic:
 - Add or update deterministic test fixtures in service layer.
@@ -81,12 +85,13 @@ When changing almanac suitable/avoidable logic:
 
 | Env Var | Default | Description |
 |---------|---------|-------------|
-| `GRPC_PORT` | 50051 | gRPC 端口 |
-| HTTP | 8080 | REST 端口 (hardcoded) |
+| `GRPC_PORT` / `LUNAR_GRPC_PORT` | contracts/runtime | gRPC 端口 |
+| `REST_PORT` / `LUNAR_REST_PORT` | contracts/runtime | REST 端口 |
 
 ## NOTES
 
-- Holiday data: 2024 sample only (expand needed)
+- Holiday data: current fixtures cover 2024-2026 Taiwan/China calendars
 - Contract sync: API must match `contracts/openapi/lunar-zenith.yaml`
+- Proto publication: keep `proto/lunar.proto` synchronized with `contracts/proto/lunar.proto`
 - Stateless, concurrent-safe
 - Almanac divergence from third-party products is expected unless their rule stack and precedence are explicitly adopted.
