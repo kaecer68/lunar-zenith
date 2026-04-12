@@ -108,9 +108,9 @@ if ! cmp -s "$LUNAR_PROTO_SRC" "$LUNAR_PROTO_CONTRACT"; then
   exit 1
 fi
 
-server_version="$(rg -o 'const serviceVersion = \"v[0-9.]+\"' "$SERVER_MAIN" | awk -F'\"' 'NR==1{print $2}')"
-openapi_version="$(rg -o '^  version: [0-9.]+' "$OPENAPI_FILE" | awk '{print $2}' | head -n1)"
-readme_badge_version="$(rg -o 'Version-v[0-9.]+-blue' "$README_FILE" | head -n1 | cut -d- -f2)"
+server_version="$(grep -Eo 'const serviceVersion = \"v[0-9.]+\"' "$SERVER_MAIN" | awk -F'\"' 'NR==1{print $2}')"
+openapi_version="$(grep -Eo '^  version: [0-9.]+' "$OPENAPI_FILE" | awk '{print $2}' | head -n1)"
+readme_badge_version="$(grep -Eo 'Version-v[0-9.]+-blue' "$README_FILE" | head -n1 | cut -d- -f2)"
 
 if [[ -z "$server_version" || -z "$openapi_version" || -z "$readme_badge_version" ]]; then
   echo "[docs-check] ERROR: failed to parse one or more version anchors" >&2

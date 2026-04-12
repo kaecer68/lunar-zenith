@@ -3,8 +3,8 @@ package service
 import (
 	"time"
 
-	lunarv1 "github.com/kaecer68/lunar-zenith/gen"
-	"github.com/kaecer68/lunar-zenith/pkg/western_astro"
+	lunarv1 "github.com/kaecer68/lunar-zenith/v4/gen"
+	"github.com/kaecer68/lunar-zenith/v4/pkg/western_astro"
 )
 
 const invalidCalendarDateMessage = "Invalid date format, use YYYY-MM-DD"

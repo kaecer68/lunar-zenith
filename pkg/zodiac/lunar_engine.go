@@ -4,7 +4,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/kaecer68/lunar-zenith/pkg/celestial"
+	"github.com/kaecer68/lunar-zenith/v4/pkg/celestial"
 )
 
 // LunarEngine 完成高精度定閏演算
@@ -80,6 +80,11 @@ func winterSolsticeMonthStart(ws float64) float64 {
 // 規則（Jean Meeus / 香港天文台標準）：
 //  1. 冬至到次冬至若包含 13 個朔望月，則其中第一個「無中氣」的月為閏月。
 //  2. 閏月放在前一個正常月的後面，共用前一個月的月序，以 IsLeap=true 標記。
+//
+// 注意：2033年問題
+//  2032-2033 冬至年只有 12 個朔望月，即使出現無中氣月也不置閏。
+//  2033-2034 冬至年有 13 個朔望月，閏月為閏十一月（首個無中氣月）。
+//  關鍵原則：冬至必須落在十一月。
 func buildLeapIndex(nmWS, ws float64) (leapPos int, months []float64) {
 	// 從 ws+20 開始尋找「下一個」冬至（此時太陽已過 284°，安全遠離 265–275° 帶）
 	nextWS := celestial.FindNextWinterSolstice(ws + 20)
@@ -92,7 +97,7 @@ func buildLeapIndex(nmWS, ws float64) (leapPos int, months []float64) {
 		curr = celestial.FindNewMoon(curr+15, 1)
 	}
 
-	// 若朔日數量 <= 12，本年無閏月
+	// 若朔日數量 <= 12，本年無閏月（2032-2033 冬至年即此案例）
 	if len(months) <= 12 {
 		return -1, months
 	}
@@ -118,7 +123,7 @@ func buildLeapIndex(nmWS, ws float64) (leapPos int, months []float64) {
 
 	// 若同一冬至年出現長鏈（>=3）「中氣落在次朔同一民用日」案例，
 	// 視為邊界歸屬連鎖歧義：避免將這些月份當作首個無中氣月。
-	// 這可消除 2033 類型的提前假閏，且不影響 2014、2020 等短鏈案例。
+	// 這可消除 2033-2034 冬至年（閏十一月）的提前假閏判定。
 	for i := 1; i < monthCount; i++ {
 		if !hasZQ[i] {
 			if maxEndDayRun >= 3 && onEndDay[i] {

@@ -3,9 +3,9 @@ package service
 import (
 	"time"
 
-	"github.com/kaecer68/lunar-zenith/pkg/celestial"
-	"github.com/kaecer68/lunar-zenith/pkg/western_astro"
-	"github.com/kaecer68/lunar-zenith/pkg/zodiac"
+	"github.com/kaecer68/lunar-zenith/v4/pkg/celestial"
+	"github.com/kaecer68/lunar-zenith/v4/pkg/western_astro"
+	"github.com/kaecer68/lunar-zenith/v4/pkg/zodiac"
 )
 
 // FestivalInfo 節日資訊

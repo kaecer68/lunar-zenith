@@ -1,7 +1,7 @@
 package zodiac
 
 import (
-	"github.com/kaecer68/lunar-zenith/pkg/celestial"
+	"github.com/kaecer68/lunar-zenith/v4/pkg/celestial"
 	"math"
 )
 

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	lunarv1 "github.com/kaecer68/lunar-zenith/gen"
+	lunarv1 "github.com/kaecer68/lunar-zenith/v4/gen"
 )
 
 func TestCalendarAPI_LeapMonthFieldsStayAligned(t *testing.T) {

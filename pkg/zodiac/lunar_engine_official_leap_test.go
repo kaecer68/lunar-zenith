@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kaecer68/lunar-zenith/pkg/celestial"
+	"github.com/kaecer68/lunar-zenith/v4/pkg/celestial"
 )
 
 // TestLunarEngine_OfficialLeapMonthSpotChecks

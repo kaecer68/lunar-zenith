@@ -7,10 +7,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	lunarv1 "github.com/kaecer68/lunar-zenith/gen"
-	runtimecfg "github.com/kaecer68/lunar-zenith/internal/runtime"
-	"github.com/kaecer68/lunar-zenith/internal/service"
-	"github.com/kaecer68/lunar-zenith/internal/webui"
+	lunarv1 "github.com/kaecer68/lunar-zenith/v4/gen"
+	runtimecfg "github.com/kaecer68/lunar-zenith/v4/internal/runtime"
+	"github.com/kaecer68/lunar-zenith/v4/internal/service"
+	"github.com/kaecer68/lunar-zenith/v4/internal/webui"
 	"google.golang.org/grpc"
 )
 

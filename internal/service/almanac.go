@@ -1,6 +1,6 @@
 package service
 
-import "github.com/kaecer68/lunar-zenith/pkg/zodiac"
+import "github.com/kaecer68/lunar-zenith/v4/pkg/zodiac"
 
 // Almanac method note:
 // Current implementation uses a deterministic baseline model:

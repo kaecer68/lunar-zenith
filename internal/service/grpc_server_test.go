@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	lunarv1 "github.com/kaecer68/lunar-zenith/gen"
-	"github.com/kaecer68/lunar-zenith/pkg/western_astro"
+	lunarv1 "github.com/kaecer68/lunar-zenith/v4/gen"
+	"github.com/kaecer68/lunar-zenith/v4/pkg/western_astro"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kaecer68/lunar-zenith/pkg/zodiac"
+	"github.com/kaecer68/lunar-zenith/v4/pkg/zodiac"
 )
 
 func TestToCalendarRESTResponseAlignsContractFields(t *testing.T) {

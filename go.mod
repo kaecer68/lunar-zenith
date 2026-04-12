@@ -1,10 +1,15 @@
-module github.com/kaecer68/lunar-zenith
+module github.com/kaecer68/lunar-zenith/v4
 
 go 1.25.6
 
 replace github.com/tejzpr/go-swisseph => ./third_party/go-swisseph
 
-require github.com/gin-gonic/gin v1.12.0
+require (
+	github.com/gin-gonic/gin v1.12.0
+	github.com/tejzpr/go-swisseph v1.0.1
+	google.golang.org/grpc v1.79.2
+	google.golang.org/protobuf v1.36.11
+)
 
 require (
 	github.com/bytedance/gopkg v0.1.3 // indirect
@@ -27,7 +32,6 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/quic-go/quic-go v0.59.0 // indirect
-	github.com/tejzpr/go-swisseph v1.0.1 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.3.1 // indirect
 	go.mongodb.org/mongo-driver/v2 v2.5.0 // indirect
@@ -37,7 +41,4 @@ require (
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217 // indirect
-	google.golang.org/grpc v1.79.2 // indirect
-	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.6.1 // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
 )

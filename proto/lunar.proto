@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package api.v1;
 
-option go_package = "github.com/kaecer68/lunar-zenith/gen;lunarv1";
+option go_package = "github.com/kaecer68/lunar-zenith/v4/gen;lunarv1";
 
 service LunarService {
   // GetCalendar 獲取完整曆法聚合數據

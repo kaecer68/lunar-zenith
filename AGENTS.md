@@ -8,57 +8,219 @@
 - Area-specific overrides live in `pkg/celestial/AGENTS.md`, `pkg/zodiac/AGENTS.md`, `internal/service/AGENTS.md`, `contracts/AGENTS.md`, and `contracts/openapi/AGENTS.md`.
 - `contracts/.github/copilot-instructions.md` defines additional contract-workflow defaults inside the `contracts/` subtree.
 
-## Documentation Map
+## Project Overview
 
-- Link to detailed docs instead of copying them.
-- `README.md`: product overview, quick start, API usage examples.
-- `PRD.md`: product scope and release evolution.
-- `SKILLS.md`: domain rules and astronomy/calendar background.
-- `contracts/README.md`: contract-first workflow and contract sync responsibilities.
+**Lunar-Zenith (算曆之巔)** is a high-precision lunisolar calendar calculation engine written in Go 1.25+. It serves as the foundational service for the Destiny Cloud workspace, providing astronomical-grade solar terms, lunar phases, sexagenary cycles (四柱八字), shensha (神煞), almanac auspicious/inauspicious activities (宜忌), and western astrology data (retrograde & aspects).
 
-## Build And Test
+The service exposes a unified API over **gRPC** and **REST (Gin)**, and embeds a single-page web UI via `go:embed`. It is fully stateless and designed for zero-panic robustness.
 
-- Preferred local sequence:
-	1. `make sync-contracts`
-	2. `make dev`
-- Validation commands: `make check-docs-consistency`, `make test`, `make vet`, `make build`, `make verify-all`.
-- `make verify-all` is the main integration gate (`verify-contracts` + `check-docs-consistency` + `test` + `vet` + `build`).
-- `make dev` syncs contracts, loads `.env.ports`, and runs `cmd/server/main.go`.
-- `make dev-clean` is recovery-only for stale listeners.
-- The Makefile runs Go commands with `CGO_LDFLAGS='-Wl,-w'`; keep parity with that environment when reproducing build or test behavior manually.
+### Technology Stack
+
+- **Language**: Go 1.25.6+ (module `github.com/kaecer68/lunar-zenith`)
+- **REST Framework**: `gin-gonic/gin`
+- **RPC Framework**: `google.golang.org/grpc` + Protocol Buffers
+- **Astronomy Library**: `tejzpr/go-swisseph` (vendored under `third_party/go-swisseph`)
+- **Embedded UI**: `internal/webui/static/index.html` served via `go:embed`
+- **Build Tool**: `Makefile`
+- **CI/CD**: GitHub Actions (`.github/workflows/docs-consistency.yml`, `.github/workflows/verify-contracts.yml`)
+
+### Key Configuration Files
+
+- `go.mod` / `go.sum` — Go dependencies.
+- `Makefile` — Primary build/test entry point.
+- `proto/lunar.proto` — Source of truth for gRPC messages.
+- `contracts/openapi/lunar-zenith.yaml` — Source of truth for REST contract.
+- `contracts/runtime/ports.env` — Workspace-wide port contract (do not edit `.env.ports` by hand).
+- `.env.ports` — **Generated** local port file (created by `make sync-contracts`).
+- `configs/holidays_tw_2024_2026.json` / `configs/holidays_cn_2024_2026.json` — Holiday fixtures.
 
 ## Architecture
 
-- `cmd/server/` is the bootstrap layer. Only `cmd/` may use `log.Fatal()` or `panic()`.
-- `internal/service/` aggregates domain logic and exposes REST + gRPC handlers.
-- `pkg/celestial/` owns Julian Day, Delta-T, solar terms, and lunar phase calculations.
-- `pkg/zodiac/` converts astronomical values into lunar calendar, sexagenary, shensha, and religious calendar outputs.
-- `pkg/western_astro/` contains western astrology calculations such as retrograde and aspects.
-- `contracts/` is the source of truth for runtime ports and API contracts.
-- `gen/` and generated protobuf files are generated artifacts; do not hand-edit them.
+```
+cmd/server/           Bootstrap layer (only place allowed to panic / log.Fatal)
+internal/
+  runtime/            Port resolution from env / .env.ports
+  service/            REST + gRPC handlers, aggregator, holiday/almanac logic
+  webui/              Embedded static web UI (single source: static/index.html)
+pkg/
+  celestial/          JD/Delta-T, solar terms, lunar position (VSOP87 / ELP-2000)
+  zodiac/             Sexagenary cycle, lunar engine, shensha, religious calendars
+  western_astro/      Retrograde & planetary aspects
+contracts/            OpenAPI + proto + runtime port contracts (shared across workspace)
+gen/                  Generated protobuf Go code (do not hand-edit)
+```
 
-## Conventions
+### Runtime Architecture
 
-- Contract-first: update OpenAPI and protobuf contracts before changing handlers or generated APIs.
-- For gRPC contract governance, keep `proto/lunar.proto` and `contracts/proto/lunar.proto` byte-for-byte synchronized.
-- Keep `cmd/server/main.go`, `contracts/openapi/lunar-zenith.yaml`, and the README version badge aligned for every release.
-- Keep REST nested JSON fields in snake_case; do not reintroduce PascalCase child keys under `shen_sha`, `mansion`, `daily_deity`, `fetal_god`, or `clash_sha`.
-- Do not manually edit `.env.ports`; use `make sync-contracts` and `make verify-contracts`.
-- Keep services stateless and prefer constructor injection patterns already used in `internal/service/aggregator.go`.
-- Use Traditional Chinese for calendar-domain names and user-facing cultural labels.
-- Use `float64` for astronomical calculations.
-- Wrap errors with context and return errors instead of panicking outside `cmd/`.
-- For solar and lunar calculations, use JDE/Delta-T corrected time where required (`JDE = JD + DeltaT/86400`); do not use UT directly for astronomical position calculations.
-- Treat leap-month handling as a known risk area in lunar-calendar work; validate leap-month years explicitly and consult `pkg/zodiac/AGENTS.md` before making correctness claims for those cases.
-- Do not hard-code year-specific lunar/leap fixes in production logic; year tables are for verification fixtures only.
+1. `cmd/server/main.go` wires dependencies:
+   - Loads Taiwan & China holiday JSON fixtures into `HolidayService`.
+   - Injects both services into `Aggregator`.
+   - Registers REST routes (`/v1/calendar`, `/health`, `/ui`) and starts gRPC in a background goroutine.
+2. Port resolution is dynamic via `internal/runtime/contracts.go`:
+   - Checks env vars `LUNAR_GRPC_PORT` / `LUNAR_REST_PORT` (and aliases `GRPC_PORT` / `REST_PORT`).
+   - Falls back to `.env.ports`, which is generated by `scripts/sync-contracts.sh`.
+   - **Never hard-codes ports** in production code.
+3. The service is **stateless** and **concurrent-safe**.
 
-## Testing
+## Build And Test
 
-- Prefer focused package tests while iterating, then finish with the narrowest relevant `make` or `go test` validation.
-- Follow existing table-driven test style and use `t.Errorf()` for non-fatal case reporting.
-- When changing contracts or transport layers, verify both REST/gRPC code paths and contract sync behavior.
-- For leap-month or calendar-boundary changes, explicitly run `pkg/zodiac/lunar_engine_leap_test.go` and `pkg/zodiac/lunar_engine_edge_test.go`.
-- For leap-month or solar-term boundary changes that affect API output, also run `internal/service/lunar_leap_api_test.go` and finish with `make verify-all`.
+### Preferred Local Sequence
+
+```bash
+make sync-contracts   # Generate .env.ports from workspace contract
+make dev              # Build and run server locally
+```
+
+### Makefile Targets
+
+| Target | Purpose |
+|--------|---------|
+| `make dev` | Sync contracts, load `.env.ports`, run `cmd/server/main.go` |
+| `make run` | Alias for `make dev` |
+| `make sync-contracts` | Generate `.env.ports` from `contracts/runtime/ports.env` |
+| `make verify-contracts` | CI gate: assert `.env.ports` matches contract |
+| `make check-docs-consistency` | Verify version alignment across `cmd/server/main.go`, `README.md`, `SKILLS.md`, OpenAPI, and proto sync |
+| `make test` | Run `go test ./...` with `CGO_LDFLAGS='-Wl,-w'` |
+| `make vet` | Run `go vet ./...` with same CGO flags |
+| `make build` | Build all packages with same CGO flags |
+| `make verify-all` | **Main integration gate**: `verify-contracts` + `check-docs-consistency` + `test` + `vet` + `build` |
+| `make dev-clean` | Kill stale listeners on contract-defined ports (recovery only) |
+
+> The Makefile runs Go commands with `CGO_LDFLAGS='-Wl,-w'`; keep parity with that environment when reproducing build or test behavior manually.
+
+### Manual Build (without Makefile)
+
+```bash
+CGO_LDFLAGS='-Wl,-w' go build -o bin/server ./cmd/server/main.go
+CGO_LDFLAGS='-Wl,-w' go test ./...
+```
+
+## Code Style & Conventions
+
+### Language & Naming
+
+- Use **Traditional Chinese** for calendar-domain names and user-facing cultural labels.
+- REST nested JSON fields must be **`snake_case`**.
+  - Forbidden PascalCase child keys under `shen_sha`, `mansion`, `daily_deity`, `fetal_god`, or `clash_sha`.
+- Go structs use PascalCase, but `json` tags must align with the OpenAPI contract.
+
+### Astronomy Conventions
+
+- Use `float64` for all astronomical calculations.
+- Distinguish **JD** (Universal Time) vs **JDE** (Terrestrial Time).
+  - `JDE = JD + DeltaT/86400`
+  - **Do not use UT directly** for solar or lunar position calculations.
+- Delta-T estimation lives in `pkg/celestial/base.go:EstimateDeltaT()` (Espenak/Meeus multi-segment polynomial, 1800–2150).
+
+### Error Handling
+
+- **Only `cmd/` may use `log.Fatal()` or `panic()`**.
+- All other packages must wrap errors with context and return them.
+
+### Dependency Injection
+
+- Keep services stateless.
+- Prefer constructor injection patterns already used in `internal/service/aggregator.go` (`NewAggregator`).
+
+### Contract-First Workflow
+
+1. Update OpenAPI (`contracts/openapi/lunar-zenith.yaml`) and `proto/lunar.proto` **before** changing handlers.
+2. Keep `proto/lunar.proto` and `contracts/proto/lunar.proto` **byte-for-byte synchronized**.
+3. Align `cmd/server/main.go` version constant, OpenAPI `info.version`, and README version badge for every release.
+4. Do not manually edit `.env.ports`; regenerate via `make sync-contracts`.
+
+### Domain-Specific Rules
+
+- **Leap-month handling** is a known risk area.
+  - Do not hard-code year-specific lunar/leap fixes in production logic.
+  - Year tables are for verification fixtures only.
+  - Validate leap-month years explicitly; consult `pkg/zodiac/AGENTS.md` before making correctness claims.
+- **Almanac logic** (`internal/service/almanac.go`) is currently a baseline model (建除十二主表 + deity directions).
+  - If introducing new rule layers, document the source, priority, and conflict arbitration in `SKILLS.md` and add parity tests.
+
+## Testing Strategy
+
+### General Approach
+
+- Prefer **focused package tests** while iterating, then finish with the narrowest relevant `make` or `go test` validation.
+- Follow existing **table-driven test style** and use `t.Errorf()` for non-fatal case reporting.
+
+### Layer-Specific Test Commands
+
+```bash
+# Astronomy layer
+go test ./pkg/celestial/... -v
+
+# Calendar / zodiac layer
+go test ./pkg/zodiac/... -v
+
+# Service / API layer
+go test ./internal/service/... -v
+```
+
+### Critical Regression Gates
+
+When changing contracts or transport layers, verify both REST/gRPC code paths and contract sync behavior.
+
+For leap-month or calendar-boundary changes, explicitly run:
+
+```bash
+go test ./pkg/zodiac -run "TestLunarEngineLeap|Test.*Leap" -v
+go test ./pkg/zodiac -run "TestLunarEngineEdge|Test.*Edge" -v
+go test ./internal/service -run "TestCalendarAPI_LeapMonthRiskYearFixtures|TestCalendarAPI_LeapMonthFestivalConsistency|TestCalendarAPI_LeapMonthFieldsStayAligned" -v
+```
+
+Then finish with:
+
+```bash
+make verify-all
+```
+
+### Test Files of Note
+
+- `pkg/zodiac/lunar_engine_leap_test.go` — Leap-month fixtures (1984, 2001, 2014, 2020, 2025, 2033).
+- `pkg/zodiac/lunar_engine_edge_test.go` — Boundary day assertions (e.g., 2001-01-24, 2020-05-23).
+- `internal/service/lunar_leap_api_test.go` — Cross-layer leap-month API alignment.
+- `internal/service/almanac_parity_test.go` — Almanac divergence recording (observational by default; set `STRICT_TONGSHU_PARITY=1` for hard assertions).
+
+## Deployment & Operations
+
+- **No Docker or Kubernetes manifests** are maintained inside this repository.
+- The binary is built as a single static-friendly Go executable with an embedded web UI.
+- **Health endpoint**: `GET /health` returns JSON with `project`, `version`, and `status`.
+- **Port defaults** (from `contracts/runtime/ports.env`):
+  - gRPC: `50051`
+  - REST: `8080`
+- If ports are already occupied, use `make dev-clean` before restarting local services.
+
+## Security Considerations
+
+- **Stateless by design**: no session state, no local caches that leak across requests.
+- **Input validation**: the `/v1/calendar` endpoint validates the `date` query parameter strictly (`YYYY-MM-DD`); invalid input returns `400 Bad Request` (REST) or `InvalidArgument` (gRPC).
+- **No secrets in source**: credentials or tokens are not stored in the repo.
+  - The CI workflow (`.github/workflows/verify-contracts.yml`) uses a repository secret `PAT_DESTINY` to check out sibling repositories (`destiny-contracts`, `destiny-cloud`) during contract verification.
+- **CGO warning suppression**: `CGO_LDFLAGS='-Wl,-w'` is used locally to reduce linker noise from the vendored Swiss Ephemeris C library; this does not affect runtime security semantics.
+
+## Where To Look
+
+| Task | File |
+|------|------|
+| Startup & dependency wiring | `cmd/server/main.go` |
+| Port loading logic | `internal/runtime/contracts.go` |
+| Service composition | `internal/service/aggregator.go` |
+| REST transport | `internal/service/rest_handler.go` |
+| gRPC transport | `internal/service/grpc_server.go` |
+| REST ↔ gRPC response mapping | `internal/service/calendar_response.go` |
+| Holiday logic | `internal/service/holiday.go` |
+| Almanac logic | `internal/service/almanac.go` |
+| JD, Delta-T | `pkg/celestial/base.go` |
+| Solar terms & sun position | `pkg/celestial/solar.go` |
+| Moon position & new moon | `pkg/celestial/moon.go` |
+| Sexagenary (Ganzhi) | `pkg/zodiac/sexagenary.go` |
+| Lunar date / leap month engine | `pkg/zodiac/lunar_engine.go` |
+| Shensha system | `pkg/zodiac/shensha.go` |
+| Contract sync script | `scripts/sync-contracts.sh` |
+| Docs consistency script | `scripts/check-docs-consistency.sh` |
 
 ## Common Pitfalls
 
@@ -68,17 +230,6 @@
 - Do not hand-edit `.env.ports`; regenerate via `make sync-contracts`.
 - Do not claim leap-month correctness without explicit boundary-year validation.
 - Do not claim leap-month/solar-term correctness unless boundary fixtures are hard assertions (not skip/todo) and cross-layer tests pass.
-- If ports are already occupied, use `make dev-clean` before restarting local services.
-
-## Where To Look
-
-- `cmd/server/main.go` for startup, dependency wiring, and port loading.
-- `internal/service/aggregator.go` for service composition.
-- `internal/service/rest_handler.go` and `internal/service/grpc_server.go` for transport behavior.
-- `pkg/celestial/base.go`, `pkg/celestial/solar.go`, and `pkg/celestial/moon.go` for astronomy logic.
-- `pkg/zodiac/sexagenary.go` and `pkg/zodiac/lunar_engine.go` for calendar conversions.
-- `contracts/runtime/ports.env`, `contracts/openapi/lunar-zenith.yaml`, and `proto/lunar.proto` for contract-driven changes.
-- `scripts/sync-contracts.sh` for `.env.ports` generation and contract-sync behavior.
 
 ## Anti-Patterns
 

@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	lunarv1 "github.com/kaecer68/lunar-zenith/gen"
+	lunarv1 "github.com/kaecer68/lunar-zenith/v4/gen"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
