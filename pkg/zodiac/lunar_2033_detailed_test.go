@@ -1,7 +1,6 @@
 package zodiac
 
 import (
-	"fmt"
 	"math"
 	"testing"
 	"time"
@@ -21,14 +20,9 @@ func Test2033DetailedAnalysis(t *testing.T) {
 	// 收集所有朔日
 	months := collectMonthsForTest2(nmWS, ws2033)
 
-	fmt.Println("=== 2033 年朔望月詳細分析 ===")
-	fmt.Printf("冬至年: %.6f 到 %.6f\n", ws2032, ws2033)
-	fmt.Printf("朔日數量: %d (應為 13 或 14)\n", len(months))
-	fmt.Println()
-
-	// 分析每個朔望月
-	fmt.Println("月索引\t朔日(JD)\t\t朔日日期\t黃經起\t黃經終\t中氣?\tonEndDay?\t中氣日期")
-	fmt.Println("----------------------------------------------------------------------------------------")
+	t.Logf("=== 2033 年朔望月詳細分析 ===")
+	t.Logf("冬至年: %.6f 到 %.6f", ws2032, ws2033)
+	t.Logf("朔日數量: %d (應為 13 或 14)", len(months))
 
 	monthCount := len(months) - 1
 	hasZQ := make([]bool, monthCount)
@@ -84,14 +78,12 @@ func Test2033DetailedAnalysis(t *testing.T) {
 			}
 		}
 
-		fmt.Printf("[%2d]\t%.6f\t%s\t%.1f°\t%.1f°\t%s\t%s\t\t%s\t(月序=%d)\n",
+		t.Logf("[%2d] %.6f %s %.1f° %.1f° %s %s %s (月序=%d)",
 			i, nmStart, jdToDate2(nmStart)[:10], sLonStart, sLonEnd,
 			zqStatus, endDayStatus, zqDate, lunarMonth)
 	}
 
 	// 統計無中氣月
-	fmt.Println()
-	fmt.Println("=== 無中氣月統計 ===")
 	noZqCount := 0
 	maxRun := 0
 	currentRun := 0
@@ -102,34 +94,32 @@ func Test2033DetailedAnalysis(t *testing.T) {
 			if currentRun > maxRun {
 				maxRun = currentRun
 			}
-			fmt.Printf("  索引 %d: 無中氣", i)
+			status := ""
 			if onEndDay[i] {
-				fmt.Print(" (onEndDay)")
+				status = " (onEndDay)"
 			}
-			fmt.Println()
+			t.Logf("  索引 %d: 無中氣%s", i, status)
 		} else {
 			currentRun = 0
 		}
 	}
-	fmt.Printf("\n總共 %d 個無中氣月，最長連續 %d 個\n", noZqCount, maxRun)
+	t.Logf("總共 %d 個無中氣月，最長連續 %d 個", noZqCount, maxRun)
 
 	// 模擬 buildLeapIndex 邏輯
-	fmt.Println()
-	fmt.Println("=== buildLeapIndex 模擬 ===")
 	leapPos := -1
 	for i := 1; i < monthCount; i++ {
 		if !hasZQ[i] {
 			if maxRun >= 3 && onEndDay[i] {
-				fmt.Printf("  索引 %d: 無中氣但被長鏈規則跳過 (onEndDay=%v)\n", i, onEndDay[i])
+				t.Logf("  索引 %d: 無中氣但被長鏈規則跳過 (onEndDay=%v)", i, onEndDay[i])
 				continue
 			}
 			leapPos = i
-			fmt.Printf("  索引 %d: 被選為閏月\n", i)
+			t.Logf("  索引 %d: 被選為閏月", i)
 			break
 		}
 	}
 	if leapPos == -1 {
-		fmt.Println("  未找到閏月 (返回 -1)")
+		t.Log("  未找到閏月 (返回 -1)")
 	}
 }
 

@@ -126,7 +126,14 @@ bash -c 'set -a; . ./.env.ports; set +a; curl "http://localhost:${LUNAR_REST_POR
   1. 更新契約（OpenAPI + `proto/lunar.proto`）
   2. 將 `proto/lunar.proto` 同步到 `contracts/proto/lunar.proto`
   3. 更新 `internal/service/calendar_response.go`（REST/gRPC 映射）
-  4. 重新生成 `gen/*.pb.go`
+  4. 重新生成 `gen/*.pb.go`（需全局安裝 `protoc-gen-go` 與 `protoc-gen-go-grpc`）
+     ```bash
+     go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+     go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+     protoc --go_out=. --go_opt=paths=source_relative \
+            --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+            proto/lunar.proto
+     ```
   5. 先執行 `openapi-generator validate -i contracts/openapi/lunar-zenith.yaml`
   6. 最後執行 `make verify-all`
 

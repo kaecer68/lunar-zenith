@@ -1,6 +1,7 @@
 package zodiac
 
 import (
+	"math"
 	"testing"
 	"time"
 
@@ -128,7 +129,7 @@ func findWinterSolsticeMonthStartForTest(ws float64) float64 {
 }
 
 func civilDayUTC8ForTest(jd float64) int {
-	return int((jd + 0.5 + 8.0/24.0))
+	return int(math.Floor(jd + 0.5 + 8.0/24.0))
 }
 
 func collectMonthsForTest(nmWS, nextWS float64) []float64 {
