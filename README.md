@@ -59,7 +59,7 @@ go build -o bin/server ./cmd/server/main.go
 make dev
 bash -c 'set -a; . ./.env.ports; set +a; echo "REST=http://localhost:${LUNAR_REST_PORT} gRPC=:${LUNAR_GRPC_PORT}"'
 ```
-服務會使用 `destiny-contracts/runtime/ports.env` 同步出的契約 port 啟動。
+服務會使用 `contracts/runtime/ports.env` 同步出的契約 port 啟動。
 
 > `make dev` 會先同步 `contracts/runtime/ports.env` 到本地 `.env.ports`，
 > 再以契約 port 啟動服務（REST/gRPC）。
@@ -118,7 +118,7 @@ bash -c 'set -a; . ./.env.ports; set +a; curl "http://localhost:${LUNAR_REST_POR
 
 ## 🔁 契約同步與維護
 
-- OpenAPI 契約（workspace 單一來源）：`../destiny-contracts/openapi/lunar-zenith.yaml`
+- OpenAPI 契約（workspace 單一來源）：`contracts/openapi/lunar-zenith.yaml`
 - gRPC proto 來源（服務內）：`proto/lunar.proto`
 - gRPC proto 發佈（供 workspace 治理/同步）：`contracts/proto/lunar.proto`
 - 契約治理入口：`make check-docs-consistency`

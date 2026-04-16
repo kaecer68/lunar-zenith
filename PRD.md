@@ -1,4 +1,4 @@
-# Lunar-Zenith (算曆之巔) - Version 0.1.1
+# Lunar-Zenith (算曆之巔) - Version 4.0.0
 
 ## 1. 核心定位 (Core Positioning)
 - **基礎環境**: 基於 Go 1.25.6，最低相容版本定為 Go 1.25.0。

@@ -588,7 +588,7 @@ PATH="$PATH:$(go env GOPATH)/bin" protoc \
 ### 6.8.2 REST JSON 鍵名規則
 
 - REST 回應使用 `snake_case`
-- `lunar_festivals` 內鍵名為：`name`, `type`, `description`
+- `lunar_festivals` 內鍵名為：`name`, `type`, `description`, `priority`
 - `solar_term` 為物件，內部鍵名為：`index`, `name`, `longitude`
 - `shen_sha`、`mansion`、`daily_deity`、`fetal_god`、`clash_sha` 的內部鍵名也必須維持 snake_case，例如 `full_name`, `clash_zodiac`, `sha_direction`
 - 前端與文件都不應再依賴 `Name/Type/Description/FullName/ClashZodiac` 這類舊 PascalCase 鍵
