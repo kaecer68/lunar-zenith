@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package api.v1;
 
-option go_package = "github.com/kaecer68/lunar-zenith/gen;lunarv1";
+option go_package = "github.com/kaecer68/lunar-zenith/v4/gen;lunarv1";
 
 service LunarService {
   // GetCalendar 獲取完整曆法聚合數據
@@ -10,20 +10,21 @@ service LunarService {
 }
 
 message GetCalendarRequest {
-  string date = 1; // 格式: YYYY-MM-DD
+  string date = 1; // 可省略；格式: YYYY-MM-DD。省略時預設 Asia/Taipei 今日日期
 }
 
 message GetCalendarResponse {
   string gregorian_date = 1;
   double julian_day = 2;
   double delta_t = 3;
+  string lunar_date = 23;
   
   LunarInfo lunar = 4;
   string buddhist = 5;
   string taoist = 6;
   
   Pillars pillars = 7;
-  SolarTerm solar_term = 8;
+  SolarTerm solar_term = 8; // v2 起與 REST 完全同型的節氣物件
   
   string twelve_officer = 9;
   repeated ShenSha shen_sha = 10;
@@ -46,6 +47,8 @@ message GetCalendarResponse {
   // v1.5.0 新增欄位 - 西洋占星
   repeated WesternAstroInfo western_astro = 21; // 行星順逆行資訊
   repeated PlanetaryAspect aspects = 22;         // 行星相位/交匯資訊
+  double moon_longitude = 25;                    // 月球黃經（度）
+  double moon_elongation = 26;                   // 日月黃經差（度）
 }
 
 message LunarInfo {
@@ -67,6 +70,10 @@ message SolarTerm {
   int32 index = 1;
   string name = 2;
   double longitude = 3;
+  string start_time = 4;        // 當前節氣開始時間 (RFC3339, Asia/Taipei)
+  string next_term_name = 5;    // 下一個節氣名稱
+  string next_term_time = 6;    // 下一個節氣時間 (RFC3339, Asia/Taipei)
+  bool is_transition_day = 7;   // 當天是否為節氣交換日
 }
 
 message ShenSha {
@@ -135,7 +142,7 @@ message WesternAstroInfo {
   bool is_retrograde = 4;
   double longitude = 5;
   double speed = 6;
-  optional string next_station_date = 7;
+  optional string next_station_date = 7; // RFC3339 時間字串
   optional string station_type = 8;
 }
 

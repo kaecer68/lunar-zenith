@@ -1,8 +1,8 @@
 # Lunar-Zenith Skills Map
 
 **Purpose**: 本文件提供 AI 助手快速了解黃曆計算系統與本專案實現的知識地圖。
-**Version**: 1.3.1  
-**Updated**: 2026-04-10  
+**Version**: 1.5.0  
+**Updated**: 2026-04-11  
 **For**: AI Assistants working on lunar-zenith project
 
 ---
@@ -550,8 +550,9 @@ mansionIndex = (A + 24) % 28
 ### 6.7.1 Contract-First 準則
 
 1. 先更新契約：`contracts/openapi/lunar-zenith.yaml`、`proto/lunar.proto`。  
-2. 再同步服務層：`internal/service/rest_handler.go`、`internal/service/grpc_server.go`。  
-3. 最後驗證：`go test ./...`、`make verify-contracts`。
+2. 同步發佈 proto：`contracts/proto/lunar.proto`。  
+3. 再同步服務層：`internal/service/rest_handler.go`、`internal/service/grpc_server.go`、`internal/service/calendar_response.go`。  
+4. 最後驗證：先跑 `openapi-generator validate -i contracts/openapi/lunar-zenith.yaml`，再以 `make verify-all` 作為整合 gate。
 
 ### 6.7.2 gRPC 同步實務
 
@@ -566,11 +567,14 @@ PATH="$PATH:$(go env GOPATH)/bin" protoc \
 ```
 
 - 避免手改 `gen/*.pb.go`，以生成結果為準。
+- `proto/lunar.proto` 與 `contracts/proto/lunar.proto` 必須 byte-for-byte 一致。
 
 ### 6.7.3 REST/gRPC 一致性檢查
 
 - 檢查 OpenAPI path 與實際路由一致（本專案為 `/v1/calendar`）。
 - 檢查 REST JSON 與 gRPC message 欄位集一致（如 `holiday_info`、`china_holiday_info`、`western_astro`、`aspects`）。
+- 目前契約中，`solar_term` 在 REST / gRPC 皆為物件，且 `solar_term_detail` 已移除。
+- 目前契約中，`shen_sha`、`mansion`、`daily_deity`、`fetal_god`、`clash_sha` 的 REST 巢狀欄位統一為 snake_case。
 - 新增欄位後，需同步更新 README / SKILLS 等維運文檔。
 
 ## 6.8 UI 與資料鍵名一致性（避免 undefined）
@@ -584,12 +588,14 @@ PATH="$PATH:$(go env GOPATH)/bin" protoc \
 ### 6.8.2 REST JSON 鍵名規則
 
 - REST 回應使用 `snake_case`
-- `lunar_festivals` 內鍵名為：`name`, `type`, `description`
-- 前端若使用 `Name/Type/Description`（大寫）會顯示 `undefined`
+- `lunar_festivals` 內鍵名為：`name`, `type`, `description`, `priority`
+- `solar_term` 為物件，內部鍵名為：`index`, `name`, `longitude`
+- `shen_sha`、`mansion`、`daily_deity`、`fetal_god`、`clash_sha` 的內部鍵名也必須維持 snake_case，例如 `full_name`, `clash_zodiac`, `sha_direction`
+- 前端與文件都不應再依賴 `Name/Type/Description/FullName/ClashZodiac` 這類舊 PascalCase 鍵
 
 ### 6.8.3 前端容錯建議
 
-- 在渲染前先做鍵名正規化（`name/type/description` 為主，必要時 fallback 大寫）
+- 在渲染前先做 shape 正規化，但目標鍵名應固定為 snake_case；不要再為舊 PascalCase 補相容分支
 - 顯示層對空值提供保底字串（例如 `—`）
 
 ---

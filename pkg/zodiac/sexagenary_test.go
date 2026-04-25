@@ -27,6 +27,13 @@ func TestGetDaySexagenary(t *testing.T) {
 	if got != want {
 		t.Errorf("GetDaySexagenary(2451545.0) = %s; want %s", got, want)
 	}
+
+	// 2026-04-24 (JD 2461155.0) 應為 戊辰 — 驗證偏移量修正後的日柱正確性
+	got2 := GetDaySexagenary(2461155.0).String()
+	want2 := "戊辰"
+	if got2 != want2 {
+		t.Errorf("GetDaySexagenary(2461155.0) = %s; want %s", got2, want2)
+	}
 }
 
 func TestGetMonthSexagenary(t *testing.T) {

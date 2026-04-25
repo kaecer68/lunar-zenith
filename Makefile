@@ -1,5 +1,5 @@
 
-.PHONY: dev run sync-contracts verify-contracts dev-clean test vet build verify-all
+.PHONY: dev run sync-contracts verify-contracts check-docs-consistency dev-clean test vet build verify-all
 
 GO_CHECK_ENV = CGO_LDFLAGS='-Wl,-w'
 
@@ -20,6 +20,9 @@ verify-contracts:
 	@chmod +x scripts/sync-contracts.sh
 	bash scripts/sync-contracts.sh --check
 
+check-docs-consistency:
+	bash scripts/check-docs-consistency.sh
+
 test:
 	bash -c "$(GO_CHECK_ENV) go test ./..."
 
@@ -29,7 +32,7 @@ vet:
 build:
 	bash -c "$(GO_CHECK_ENV) go build ./..."
 
-verify-all: verify-contracts test vet build
+verify-all: verify-contracts check-docs-consistency test vet build
 
 dev-clean:
 	@chmod +x scripts/dev-clean.sh

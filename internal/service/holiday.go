@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kaecer68/lunar-zenith/pkg/celestial"
-	"github.com/kaecer68/lunar-zenith/pkg/zodiac"
+	"github.com/kaecer68/lunar-zenith/v4/pkg/celestial"
+	"github.com/kaecer68/lunar-zenith/v4/pkg/zodiac"
 )
 
 // HolidayType 定義假期的類型

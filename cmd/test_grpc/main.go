@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	lunarv1 "github.com/kaecer68/lunar-zenith/gen"
-	runtimecfg "github.com/kaecer68/lunar-zenith/internal/runtime"
+	lunarv1 "github.com/kaecer68/lunar-zenith/v4/gen"
+	runtimecfg "github.com/kaecer68/lunar-zenith/v4/internal/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

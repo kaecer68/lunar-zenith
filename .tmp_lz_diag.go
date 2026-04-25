@@ -5,7 +5,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/kaecer68/lunar-zenith/pkg/celestial"
+	"github.com/kaecer68/lunar-zenith/v4/pkg/celestial"
 )
 
 func monthHasZhongqi(nmStart, nmEnd float64) bool {

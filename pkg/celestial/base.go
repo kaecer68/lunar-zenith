@@ -5,6 +5,14 @@ import (
 	"time"
 )
 
+var taipeiLocation = func() *time.Location {
+	loc, err := time.LoadLocation("Asia/Taipei")
+	if err != nil {
+		return time.FixedZone("CST", 8*3600)
+	}
+	return loc
+}()
+
 // PrecisionTime 封裝了天文計算所需的高精度時間結構
 type PrecisionTime struct {
 	UT     time.Time // 民用協調世界時 (Universal Time)
@@ -76,6 +84,20 @@ func JDToDate(jd float64) (year, month, day int) {
 		year = int(c - 4715)
 	}
 	return
+}
+
+// JDToTime 將儒略日轉換為指定時區的 time.Time
+// jd: 儒略日 (UT)
+// loc: 目標時區（如 Asia/Taipei）
+func JDToTime(jd float64, loc *time.Location) time.Time {
+	y, m, d := JDToDate(jd)
+dayFrac := jd + 0.5 - math.Floor(jd+0.5)
+	hour := int(dayFrac * 24)
+	min := int((dayFrac*24 - float64(hour)) * 60)
+	sec := int(((dayFrac*24-float64(hour))*60 - float64(min)) * 60)
+
+	// dayFrac ∈ [0,1) ⇒ hour ∈ [0,23]，無需跨日調整
+	return time.Date(y, time.Month(m), d, hour, min, sec, 0, loc)
 }
 
 // EstimateDeltaT 估算 TT 與 UT 之間的差值（秒）

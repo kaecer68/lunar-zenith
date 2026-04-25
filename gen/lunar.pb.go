@@ -23,7 +23,7 @@ const (
 
 type GetCalendarRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Date          string                 `protobuf:"bytes,1,opt,name=date,proto3" json:"date,omitempty"` // 格式: YYYY-MM-DD
+	Date          string                 `protobuf:"bytes,1,opt,name=date,proto3" json:"date,omitempty"` // 可省略；格式: YYYY-MM-DD。省略時預設 Asia/Taipei 今日日期
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -70,11 +70,12 @@ type GetCalendarResponse struct {
 	GregorianDate string                 `protobuf:"bytes,1,opt,name=gregorian_date,json=gregorianDate,proto3" json:"gregorian_date,omitempty"`
 	JulianDay     float64                `protobuf:"fixed64,2,opt,name=julian_day,json=julianDay,proto3" json:"julian_day,omitempty"`
 	DeltaT        float64                `protobuf:"fixed64,3,opt,name=delta_t,json=deltaT,proto3" json:"delta_t,omitempty"`
+	LunarDate     string                 `protobuf:"bytes,23,opt,name=lunar_date,json=lunarDate,proto3" json:"lunar_date,omitempty"`
 	Lunar         *LunarInfo             `protobuf:"bytes,4,opt,name=lunar,proto3" json:"lunar,omitempty"`
 	Buddhist      string                 `protobuf:"bytes,5,opt,name=buddhist,proto3" json:"buddhist,omitempty"`
 	Taoist        string                 `protobuf:"bytes,6,opt,name=taoist,proto3" json:"taoist,omitempty"`
 	Pillars       *Pillars               `protobuf:"bytes,7,opt,name=pillars,proto3" json:"pillars,omitempty"`
-	SolarTerm     *SolarTerm             `protobuf:"bytes,8,opt,name=solar_term,json=solarTerm,proto3" json:"solar_term,omitempty"`
+	SolarTerm     *SolarTerm             `protobuf:"bytes,8,opt,name=solar_term,json=solarTerm,proto3" json:"solar_term,omitempty"` // v2 起與 REST 完全同型的節氣物件
 	TwelveOfficer string                 `protobuf:"bytes,9,opt,name=twelve_officer,json=twelveOfficer,proto3" json:"twelve_officer,omitempty"`
 	ShenSha       []*ShenSha             `protobuf:"bytes,10,rep,name=shen_sha,json=shenSha,proto3" json:"shen_sha,omitempty"`
 	HolidayInfo   *HolidayInfo           `protobuf:"bytes,11,opt,name=holiday_info,json=holidayInfo,proto3" json:"holiday_info,omitempty"`
@@ -90,10 +91,12 @@ type GetCalendarResponse struct {
 	LunarFestivals   []*LunarFestival `protobuf:"bytes,19,rep,name=lunar_festivals,json=lunarFestivals,proto3" json:"lunar_festivals,omitempty"`         // 農曆宗教節日列表
 	ChinaHolidayInfo *HolidayInfo     `protobuf:"bytes,20,opt,name=china_holiday_info,json=chinaHolidayInfo,proto3" json:"china_holiday_info,omitempty"` // 大陸行政假期
 	// v1.5.0 新增欄位 - 西洋占星
-	WesternAstro  []*WesternAstroInfo `protobuf:"bytes,21,rep,name=western_astro,json=westernAstro,proto3" json:"western_astro,omitempty"` // 行星順逆行資訊
-	Aspects       []*PlanetaryAspect  `protobuf:"bytes,22,rep,name=aspects,proto3" json:"aspects,omitempty"`                               // 行星相位/交匯資訊
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	WesternAstro   []*WesternAstroInfo `protobuf:"bytes,21,rep,name=western_astro,json=westernAstro,proto3" json:"western_astro,omitempty"`         // 行星順逆行資訊
+	Aspects        []*PlanetaryAspect  `protobuf:"bytes,22,rep,name=aspects,proto3" json:"aspects,omitempty"`                                       // 行星相位/交匯資訊
+	MoonLongitude  float64             `protobuf:"fixed64,25,opt,name=moon_longitude,json=moonLongitude,proto3" json:"moon_longitude,omitempty"`    // 月球黃經（度）
+	MoonElongation float64             `protobuf:"fixed64,26,opt,name=moon_elongation,json=moonElongation,proto3" json:"moon_elongation,omitempty"` // 日月黃經差（度）
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *GetCalendarResponse) Reset() {
@@ -145,6 +148,13 @@ func (x *GetCalendarResponse) GetDeltaT() float64 {
 		return x.DeltaT
 	}
 	return 0
+}
+
+func (x *GetCalendarResponse) GetLunarDate() string {
+	if x != nil {
+		return x.LunarDate
+	}
+	return ""
 }
 
 func (x *GetCalendarResponse) GetLunar() *LunarInfo {
@@ -278,6 +288,20 @@ func (x *GetCalendarResponse) GetAspects() []*PlanetaryAspect {
 		return x.Aspects
 	}
 	return nil
+}
+
+func (x *GetCalendarResponse) GetMoonLongitude() float64 {
+	if x != nil {
+		return x.MoonLongitude
+	}
+	return 0
+}
+
+func (x *GetCalendarResponse) GetMoonElongation() float64 {
+	if x != nil {
+		return x.MoonElongation
+	}
+	return 0
 }
 
 type LunarInfo struct {
@@ -425,12 +449,16 @@ func (x *Pillars) GetHour() string {
 }
 
 type SolarTerm struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Index         int32                  `protobuf:"varint,1,opt,name=index,proto3" json:"index,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Longitude     float64                `protobuf:"fixed64,3,opt,name=longitude,proto3" json:"longitude,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Index           int32                  `protobuf:"varint,1,opt,name=index,proto3" json:"index,omitempty"`
+	Name            string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Longitude       float64                `protobuf:"fixed64,3,opt,name=longitude,proto3" json:"longitude,omitempty"`
+	StartTime       string                 `protobuf:"bytes,4,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`                      // 當前節氣開始時間 (RFC3339, Asia/Taipei)
+	NextTermName    string                 `protobuf:"bytes,5,opt,name=next_term_name,json=nextTermName,proto3" json:"next_term_name,omitempty"`           // 下一個節氣名稱
+	NextTermTime    string                 `protobuf:"bytes,6,opt,name=next_term_time,json=nextTermTime,proto3" json:"next_term_time,omitempty"`           // 下一個節氣時間 (RFC3339, Asia/Taipei)
+	IsTransitionDay bool                   `protobuf:"varint,7,opt,name=is_transition_day,json=isTransitionDay,proto3" json:"is_transition_day,omitempty"` // 當天是否為節氣交換日
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *SolarTerm) Reset() {
@@ -482,6 +510,34 @@ func (x *SolarTerm) GetLongitude() float64 {
 		return x.Longitude
 	}
 	return 0
+}
+
+func (x *SolarTerm) GetStartTime() string {
+	if x != nil {
+		return x.StartTime
+	}
+	return ""
+}
+
+func (x *SolarTerm) GetNextTermName() string {
+	if x != nil {
+		return x.NextTermName
+	}
+	return ""
+}
+
+func (x *SolarTerm) GetNextTermTime() string {
+	if x != nil {
+		return x.NextTermTime
+	}
+	return ""
+}
+
+func (x *SolarTerm) GetIsTransitionDay() bool {
+	if x != nil {
+		return x.IsTransitionDay
+	}
+	return false
 }
 
 type ShenSha struct {
@@ -1011,7 +1067,7 @@ type WesternAstroInfo struct {
 	IsRetrograde    bool                   `protobuf:"varint,4,opt,name=is_retrograde,json=isRetrograde,proto3" json:"is_retrograde,omitempty"`
 	Longitude       float64                `protobuf:"fixed64,5,opt,name=longitude,proto3" json:"longitude,omitempty"`
 	Speed           float64                `protobuf:"fixed64,6,opt,name=speed,proto3" json:"speed,omitempty"`
-	NextStationDate *string                `protobuf:"bytes,7,opt,name=next_station_date,json=nextStationDate,proto3,oneof" json:"next_station_date,omitempty"`
+	NextStationDate *string                `protobuf:"bytes,7,opt,name=next_station_date,json=nextStationDate,proto3,oneof" json:"next_station_date,omitempty"` // RFC3339 時間字串
 	StationType     *string                `protobuf:"bytes,8,opt,name=station_type,json=stationType,proto3,oneof" json:"station_type,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
@@ -1226,12 +1282,14 @@ const file_proto_lunar_proto_rawDesc = "" +
 	"\n" +
 	"\x11proto/lunar.proto\x12\x06api.v1\"(\n" +
 	"\x12GetCalendarRequest\x12\x12\n" +
-	"\x04date\x18\x01 \x01(\tR\x04date\"\xda\a\n" +
+	"\x04date\x18\x01 \x01(\tR\x04date\"\xc9\b\n" +
 	"\x13GetCalendarResponse\x12%\n" +
 	"\x0egregorian_date\x18\x01 \x01(\tR\rgregorianDate\x12\x1d\n" +
 	"\n" +
 	"julian_day\x18\x02 \x01(\x01R\tjulianDay\x12\x17\n" +
-	"\adelta_t\x18\x03 \x01(\x01R\x06deltaT\x12'\n" +
+	"\adelta_t\x18\x03 \x01(\x01R\x06deltaT\x12\x1d\n" +
+	"\n" +
+	"lunar_date\x18\x17 \x01(\tR\tlunarDate\x12'\n" +
 	"\x05lunar\x18\x04 \x01(\v2\x11.api.v1.LunarInfoR\x05lunar\x12\x1a\n" +
 	"\bbuddhist\x18\x05 \x01(\tR\bbuddhist\x12\x16\n" +
 	"\x06taoist\x18\x06 \x01(\tR\x06taoist\x12)\n" +
@@ -1255,7 +1313,9 @@ const file_proto_lunar_proto_rawDesc = "" +
 	"\x0flunar_festivals\x18\x13 \x03(\v2\x15.api.v1.LunarFestivalR\x0elunarFestivals\x12A\n" +
 	"\x12china_holiday_info\x18\x14 \x01(\v2\x13.api.v1.HolidayInfoR\x10chinaHolidayInfo\x12=\n" +
 	"\rwestern_astro\x18\x15 \x03(\v2\x18.api.v1.WesternAstroInfoR\fwesternAstro\x121\n" +
-	"\aaspects\x18\x16 \x03(\v2\x17.api.v1.PlanetaryAspectR\aaspects\"\x83\x01\n" +
+	"\aaspects\x18\x16 \x03(\v2\x17.api.v1.PlanetaryAspectR\aaspects\x12%\n" +
+	"\x0emoon_longitude\x18\x19 \x01(\x01R\rmoonLongitude\x12'\n" +
+	"\x0fmoon_elongation\x18\x1a \x01(\x01R\x0emoonElongation\"\x83\x01\n" +
 	"\tLunarInfo\x12\x12\n" +
 	"\x04year\x18\x01 \x01(\x05R\x04year\x12\x14\n" +
 	"\x05month\x18\x02 \x01(\x05R\x05month\x12\x10\n" +
@@ -1266,11 +1326,16 @@ const file_proto_lunar_proto_rawDesc = "" +
 	"\x04year\x18\x01 \x01(\tR\x04year\x12\x14\n" +
 	"\x05month\x18\x02 \x01(\tR\x05month\x12\x10\n" +
 	"\x03day\x18\x03 \x01(\tR\x03day\x12\x12\n" +
-	"\x04hour\x18\x04 \x01(\tR\x04hour\"S\n" +
+	"\x04hour\x18\x04 \x01(\tR\x04hour\"\xea\x01\n" +
 	"\tSolarTerm\x12\x14\n" +
 	"\x05index\x18\x01 \x01(\x05R\x05index\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1c\n" +
-	"\tlongitude\x18\x03 \x01(\x01R\tlongitude\"?\n" +
+	"\tlongitude\x18\x03 \x01(\x01R\tlongitude\x12\x1d\n" +
+	"\n" +
+	"start_time\x18\x04 \x01(\tR\tstartTime\x12$\n" +
+	"\x0enext_term_name\x18\x05 \x01(\tR\fnextTermName\x12$\n" +
+	"\x0enext_term_time\x18\x06 \x01(\tR\fnextTermTime\x12*\n" +
+	"\x11is_transition_day\x18\a \x01(\bR\x0fisTransitionDay\"?\n" +
 	"\aShenSha\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\"@\n" +
@@ -1336,7 +1401,7 @@ const file_proto_lunar_proto_rawDesc = "" +
 	" \x01(\tH\x00R\texactDate\x88\x01\x01B\r\n" +
 	"\v_exact_date2V\n" +
 	"\fLunarService\x12F\n" +
-	"\vGetCalendar\x12\x1a.api.v1.GetCalendarRequest\x1a\x1b.api.v1.GetCalendarResponseB.Z,github.com/kaecer68/lunar-zenith/gen;lunarv1b\x06proto3"
+	"\vGetCalendar\x12\x1a.api.v1.GetCalendarRequest\x1a\x1b.api.v1.GetCalendarResponseB1Z/github.com/kaecer68/lunar-zenith/v4/gen;lunarv1b\x06proto3"
 
 var (
 	file_proto_lunar_proto_rawDescOnce sync.Once

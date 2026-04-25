@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kaecer68/lunar-zenith/pkg/celestial"
+	"github.com/kaecer68/lunar-zenith/v4/pkg/celestial"
 )
 
 func TestLunarEngine_LeapMonthCoverage(t *testing.T) {

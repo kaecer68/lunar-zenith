@@ -3,9 +3,9 @@ package service
 import (
 	"time"
 
-	"github.com/kaecer68/lunar-zenith/pkg/celestial"
-	"github.com/kaecer68/lunar-zenith/pkg/western_astro"
-	"github.com/kaecer68/lunar-zenith/pkg/zodiac"
+	"github.com/kaecer68/lunar-zenith/v4/pkg/celestial"
+	"github.com/kaecer68/lunar-zenith/v4/pkg/western_astro"
+	"github.com/kaecer68/lunar-zenith/v4/pkg/zodiac"
 )
 
 // FestivalInfo 節日資訊
@@ -13,6 +13,7 @@ type FestivalInfo struct {
 	Name        string `json:"name"`
 	Type        string `json:"type"`
 	Description string `json:"description"`
+	Priority    int    `json:"priority"`
 }
 
 // CalendarResponse 曆法全家桶：聚合所有維度的數據
@@ -134,6 +135,7 @@ func (a *Aggregator) GetCalendar(t time.Time) CalendarResponse {
 			Name:        f.Name,
 			Type:        f.Type,
 			Description: f.Description,
+			Priority:    f.Priority,
 		})
 	}
 

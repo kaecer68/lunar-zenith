@@ -7,12 +7,14 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	lunarv1 "github.com/kaecer68/lunar-zenith/gen"
-	runtimecfg "github.com/kaecer68/lunar-zenith/internal/runtime"
-	"github.com/kaecer68/lunar-zenith/internal/service"
-	"github.com/kaecer68/lunar-zenith/internal/webui"
+	lunarv1 "github.com/kaecer68/lunar-zenith/v4/gen"
+	runtimecfg "github.com/kaecer68/lunar-zenith/v4/internal/runtime"
+	"github.com/kaecer68/lunar-zenith/v4/internal/service"
+	"github.com/kaecer68/lunar-zenith/v4/internal/webui"
 	"google.golang.org/grpc"
 )
+
+const serviceVersion = "v4.1.0"
 
 func main() {
 	grpcPort, err := runtimecfg.GetRequiredPort("LUNAR_GRPC_PORT", "GRPC_PORT")
@@ -62,7 +64,7 @@ func main() {
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"project": "Lunar-Zenith (算曆之巔)",
-			"version": "v1.4.0",
+			"version": serviceVersion,
 			"status":  "running",
 		})
 	})

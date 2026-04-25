@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kaecer68/lunar-zenith/pkg/celestial"
+	"github.com/kaecer68/lunar-zenith/v4/pkg/celestial"
 )
 
 // TestLunarEngine_HistoricalEdgeFixtures 追蹤目前已知的模型邊界日期。

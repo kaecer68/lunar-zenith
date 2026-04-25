@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
 	swisseph "github.com/tejzpr/go-swisseph"
 )
@@ -124,13 +125,22 @@ func GetSolarTermName(index int) string {
 
 // SolarTermInfo 封裝節氣的完整資訊
 type SolarTermInfo struct {
-	Index     int     // 節氣索引 (0-23)
-	Name      string  // 節氣名稱 (如：春分)
-	Longitude float64 // 當前太陽黃經
+	Index           int     // 節氣索引 (0-23)
+	Name            string  // 節氣名稱 (如：春分)
+	Longitude       float64 // 當前太陽黃經
+	StartTime       string  // 當前節氣開始時間 (RFC3339, Asia/Taipei)
+	NextTermName    string  // 下一個節氣名稱
+	NextTermTime    string  // 下一個節氣時間 (RFC3339, Asia/Taipei)
+	IsTransitionDay bool    // 當天是否為節氣交換日
 }
 
 // GetSolarTerm 根據 jde 獲取當前節氣資訊
 func GetSolarTerm(jde float64) SolarTermInfo {
+	return GetSolarTermWithTime(jde)
+}
+
+// GetSolarTermWithTime 獲取包含精確時間的節氣資訊
+func GetSolarTermWithTime(jde float64) SolarTermInfo {
 	lon := SolarLongitude(jde)
 	normLon := math.Mod(lon, 360.0)
 	if normLon < 0 {
@@ -138,10 +148,39 @@ func GetSolarTerm(jde float64) SolarTermInfo {
 	}
 	index := int(math.Floor(normLon / 15.0))
 
+	// 當前節氣起始黃經
+	currentTermLon := float64(index) * 15.0
+	// 下一個節氣起始黃經
+	nextTermLon := math.Mod(currentTermLon+15.0, 360.0)
+	nextIndex := (index + 1) % 24
+
+	// 搜尋當前節氣開始時間：往回搜尋 20 天
+	termStartJDE := EstimateTermTime(currentTermLon, jde-20, jde)
+	// 搜尋下一個節氣時間：往前搜尋 20 天
+	nextTermJDE := EstimateTermTime(nextTermLon, jde, jde+20)
+
+	// JDE (TT) → JD (UT)：需扣除 Delta-T
+	// 先以 JDE 作為 JD 估算 Delta-T，再用真實 JD 轉換為台北時間
+	termStartTimeApprox := JDToTime(termStartJDE, taipeiLocation)
+	termStartDeltaT := EstimateDeltaT(termStartTimeApprox)
+	termStartTime := JDToTime(termStartJDE-termStartDeltaT/86400.0, taipeiLocation)
+
+	nextTermTimeApprox := JDToTime(nextTermJDE, taipeiLocation)
+	nextTermDeltaT := EstimateDeltaT(nextTermTimeApprox)
+	nextTermTime := JDToTime(nextTermJDE-nextTermDeltaT/86400.0, taipeiLocation)
+
+	// 判斷當天是否為節氣交換日：節氣起始時間是否落在查詢日期的 UTC+8 日曆日
+	queryDate := JDToTime(jde, taipeiLocation).Format("2006-01-02")
+	isTransitionDay := termStartTime.Format("2006-01-02") == queryDate
+
 	return SolarTermInfo{
-		Index:     index,
-		Name:      GetSolarTermName(index),
-		Longitude: lon,
+		Index:           index,
+		Name:            GetSolarTermName(index),
+		Longitude:       lon,
+		StartTime:       termStartTime.Format(time.RFC3339),
+		NextTermName:    GetSolarTermName(nextIndex),
+		NextTermTime:    nextTermTime.Format(time.RFC3339),
+		IsTransitionDay: isTransitionDay,
 	}
 }
 
