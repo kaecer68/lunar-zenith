@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v7.34.1
-// source: lunar.proto
+// source: proto/lunar.proto
 
 package lunarv1
 
@@ -30,7 +30,7 @@ type GetCalendarRequest struct {
 
 func (x *GetCalendarRequest) Reset() {
 	*x = GetCalendarRequest{}
-	mi := &file_lunar_proto_msgTypes[0]
+	mi := &file_proto_lunar_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -42,7 +42,7 @@ func (x *GetCalendarRequest) String() string {
 func (*GetCalendarRequest) ProtoMessage() {}
 
 func (x *GetCalendarRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lunar_proto_msgTypes[0]
+	mi := &file_proto_lunar_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -55,7 +55,7 @@ func (x *GetCalendarRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCalendarRequest.ProtoReflect.Descriptor instead.
 func (*GetCalendarRequest) Descriptor() ([]byte, []int) {
-	return file_lunar_proto_rawDescGZIP(), []int{0}
+	return file_proto_lunar_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *GetCalendarRequest) GetDate() string {
@@ -101,7 +101,7 @@ type GetCalendarResponse struct {
 
 func (x *GetCalendarResponse) Reset() {
 	*x = GetCalendarResponse{}
-	mi := &file_lunar_proto_msgTypes[1]
+	mi := &file_proto_lunar_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -113,7 +113,7 @@ func (x *GetCalendarResponse) String() string {
 func (*GetCalendarResponse) ProtoMessage() {}
 
 func (x *GetCalendarResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lunar_proto_msgTypes[1]
+	mi := &file_proto_lunar_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -126,7 +126,7 @@ func (x *GetCalendarResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCalendarResponse.ProtoReflect.Descriptor instead.
 func (*GetCalendarResponse) Descriptor() ([]byte, []int) {
-	return file_lunar_proto_rawDescGZIP(), []int{1}
+	return file_proto_lunar_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *GetCalendarResponse) GetGregorianDate() string {
@@ -317,7 +317,7 @@ type LunarInfo struct {
 
 func (x *LunarInfo) Reset() {
 	*x = LunarInfo{}
-	mi := &file_lunar_proto_msgTypes[2]
+	mi := &file_proto_lunar_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -329,7 +329,7 @@ func (x *LunarInfo) String() string {
 func (*LunarInfo) ProtoMessage() {}
 
 func (x *LunarInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_lunar_proto_msgTypes[2]
+	mi := &file_proto_lunar_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -342,7 +342,7 @@ func (x *LunarInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LunarInfo.ProtoReflect.Descriptor instead.
 func (*LunarInfo) Descriptor() ([]byte, []int) {
-	return file_lunar_proto_rawDescGZIP(), []int{2}
+	return file_proto_lunar_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *LunarInfo) GetYear() int32 {
@@ -392,7 +392,7 @@ type Pillars struct {
 
 func (x *Pillars) Reset() {
 	*x = Pillars{}
-	mi := &file_lunar_proto_msgTypes[3]
+	mi := &file_proto_lunar_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -404,7 +404,7 @@ func (x *Pillars) String() string {
 func (*Pillars) ProtoMessage() {}
 
 func (x *Pillars) ProtoReflect() protoreflect.Message {
-	mi := &file_lunar_proto_msgTypes[3]
+	mi := &file_proto_lunar_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -417,7 +417,7 @@ func (x *Pillars) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Pillars.ProtoReflect.Descriptor instead.
 func (*Pillars) Descriptor() ([]byte, []int) {
-	return file_lunar_proto_rawDescGZIP(), []int{3}
+	return file_proto_lunar_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Pillars) GetYear() string {
@@ -449,17 +449,21 @@ func (x *Pillars) GetHour() string {
 }
 
 type SolarTerm struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Index         int32                  `protobuf:"varint,1,opt,name=index,proto3" json:"index,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Longitude     float64                `protobuf:"fixed64,3,opt,name=longitude,proto3" json:"longitude,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Index           int32                  `protobuf:"varint,1,opt,name=index,proto3" json:"index,omitempty"`
+	Name            string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Longitude       float64                `protobuf:"fixed64,3,opt,name=longitude,proto3" json:"longitude,omitempty"`
+	StartTime       string                 `protobuf:"bytes,4,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`                      // 當前節氣開始時間 (RFC3339, Asia/Taipei)
+	NextTermName    string                 `protobuf:"bytes,5,opt,name=next_term_name,json=nextTermName,proto3" json:"next_term_name,omitempty"`           // 下一個節氣名稱
+	NextTermTime    string                 `protobuf:"bytes,6,opt,name=next_term_time,json=nextTermTime,proto3" json:"next_term_time,omitempty"`           // 下一個節氣時間 (RFC3339, Asia/Taipei)
+	IsTransitionDay bool                   `protobuf:"varint,7,opt,name=is_transition_day,json=isTransitionDay,proto3" json:"is_transition_day,omitempty"` // 當天是否為節氣交換日
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *SolarTerm) Reset() {
 	*x = SolarTerm{}
-	mi := &file_lunar_proto_msgTypes[4]
+	mi := &file_proto_lunar_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -471,7 +475,7 @@ func (x *SolarTerm) String() string {
 func (*SolarTerm) ProtoMessage() {}
 
 func (x *SolarTerm) ProtoReflect() protoreflect.Message {
-	mi := &file_lunar_proto_msgTypes[4]
+	mi := &file_proto_lunar_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -484,7 +488,7 @@ func (x *SolarTerm) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SolarTerm.ProtoReflect.Descriptor instead.
 func (*SolarTerm) Descriptor() ([]byte, []int) {
-	return file_lunar_proto_rawDescGZIP(), []int{4}
+	return file_proto_lunar_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *SolarTerm) GetIndex() int32 {
@@ -508,6 +512,34 @@ func (x *SolarTerm) GetLongitude() float64 {
 	return 0
 }
 
+func (x *SolarTerm) GetStartTime() string {
+	if x != nil {
+		return x.StartTime
+	}
+	return ""
+}
+
+func (x *SolarTerm) GetNextTermName() string {
+	if x != nil {
+		return x.NextTermName
+	}
+	return ""
+}
+
+func (x *SolarTerm) GetNextTermTime() string {
+	if x != nil {
+		return x.NextTermTime
+	}
+	return ""
+}
+
+func (x *SolarTerm) GetIsTransitionDay() bool {
+	if x != nil {
+		return x.IsTransitionDay
+	}
+	return false
+}
+
 type ShenSha struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -518,7 +550,7 @@ type ShenSha struct {
 
 func (x *ShenSha) Reset() {
 	*x = ShenSha{}
-	mi := &file_lunar_proto_msgTypes[5]
+	mi := &file_proto_lunar_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -530,7 +562,7 @@ func (x *ShenSha) String() string {
 func (*ShenSha) ProtoMessage() {}
 
 func (x *ShenSha) ProtoReflect() protoreflect.Message {
-	mi := &file_lunar_proto_msgTypes[5]
+	mi := &file_proto_lunar_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -543,7 +575,7 @@ func (x *ShenSha) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShenSha.ProtoReflect.Descriptor instead.
 func (*ShenSha) Descriptor() ([]byte, []int) {
-	return file_lunar_proto_rawDescGZIP(), []int{5}
+	return file_proto_lunar_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ShenSha) GetName() string {
@@ -570,7 +602,7 @@ type HolidayInfo struct {
 
 func (x *HolidayInfo) Reset() {
 	*x = HolidayInfo{}
-	mi := &file_lunar_proto_msgTypes[6]
+	mi := &file_proto_lunar_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -582,7 +614,7 @@ func (x *HolidayInfo) String() string {
 func (*HolidayInfo) ProtoMessage() {}
 
 func (x *HolidayInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_lunar_proto_msgTypes[6]
+	mi := &file_proto_lunar_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -595,7 +627,7 @@ func (x *HolidayInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HolidayInfo.ProtoReflect.Descriptor instead.
 func (*HolidayInfo) Descriptor() ([]byte, []int) {
-	return file_lunar_proto_rawDescGZIP(), []int{6}
+	return file_proto_lunar_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *HolidayInfo) GetIsHoliday() bool {
@@ -625,7 +657,7 @@ type Directions struct {
 
 func (x *Directions) Reset() {
 	*x = Directions{}
-	mi := &file_lunar_proto_msgTypes[7]
+	mi := &file_proto_lunar_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -637,7 +669,7 @@ func (x *Directions) String() string {
 func (*Directions) ProtoMessage() {}
 
 func (x *Directions) ProtoReflect() protoreflect.Message {
-	mi := &file_lunar_proto_msgTypes[7]
+	mi := &file_proto_lunar_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -650,7 +682,7 @@ func (x *Directions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Directions.ProtoReflect.Descriptor instead.
 func (*Directions) Descriptor() ([]byte, []int) {
-	return file_lunar_proto_rawDescGZIP(), []int{7}
+	return file_proto_lunar_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *Directions) GetWealth() string {
@@ -696,7 +728,7 @@ type Mansion struct {
 
 func (x *Mansion) Reset() {
 	*x = Mansion{}
-	mi := &file_lunar_proto_msgTypes[8]
+	mi := &file_proto_lunar_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -708,7 +740,7 @@ func (x *Mansion) String() string {
 func (*Mansion) ProtoMessage() {}
 
 func (x *Mansion) ProtoReflect() protoreflect.Message {
-	mi := &file_lunar_proto_msgTypes[8]
+	mi := &file_proto_lunar_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -721,7 +753,7 @@ func (x *Mansion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Mansion.ProtoReflect.Descriptor instead.
 func (*Mansion) Descriptor() ([]byte, []int) {
-	return file_lunar_proto_rawDescGZIP(), []int{8}
+	return file_proto_lunar_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Mansion) GetName() string {
@@ -778,7 +810,7 @@ type DailyDeity struct {
 
 func (x *DailyDeity) Reset() {
 	*x = DailyDeity{}
-	mi := &file_lunar_proto_msgTypes[9]
+	mi := &file_proto_lunar_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -790,7 +822,7 @@ func (x *DailyDeity) String() string {
 func (*DailyDeity) ProtoMessage() {}
 
 func (x *DailyDeity) ProtoReflect() protoreflect.Message {
-	mi := &file_lunar_proto_msgTypes[9]
+	mi := &file_proto_lunar_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -803,7 +835,7 @@ func (x *DailyDeity) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DailyDeity.ProtoReflect.Descriptor instead.
 func (*DailyDeity) Descriptor() ([]byte, []int) {
-	return file_lunar_proto_rawDescGZIP(), []int{9}
+	return file_proto_lunar_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *DailyDeity) GetName() string {
@@ -839,7 +871,7 @@ type FetalGod struct {
 
 func (x *FetalGod) Reset() {
 	*x = FetalGod{}
-	mi := &file_lunar_proto_msgTypes[10]
+	mi := &file_proto_lunar_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -851,7 +883,7 @@ func (x *FetalGod) String() string {
 func (*FetalGod) ProtoMessage() {}
 
 func (x *FetalGod) ProtoReflect() protoreflect.Message {
-	mi := &file_lunar_proto_msgTypes[10]
+	mi := &file_proto_lunar_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -864,7 +896,7 @@ func (x *FetalGod) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FetalGod.ProtoReflect.Descriptor instead.
 func (*FetalGod) Descriptor() ([]byte, []int) {
-	return file_lunar_proto_rawDescGZIP(), []int{10}
+	return file_proto_lunar_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *FetalGod) GetPosition() string {
@@ -901,7 +933,7 @@ type ClashSha struct {
 
 func (x *ClashSha) Reset() {
 	*x = ClashSha{}
-	mi := &file_lunar_proto_msgTypes[11]
+	mi := &file_proto_lunar_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -913,7 +945,7 @@ func (x *ClashSha) String() string {
 func (*ClashSha) ProtoMessage() {}
 
 func (x *ClashSha) ProtoReflect() protoreflect.Message {
-	mi := &file_lunar_proto_msgTypes[11]
+	mi := &file_proto_lunar_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -926,7 +958,7 @@ func (x *ClashSha) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClashSha.ProtoReflect.Descriptor instead.
 func (*ClashSha) Descriptor() ([]byte, []int) {
-	return file_lunar_proto_rawDescGZIP(), []int{11}
+	return file_proto_lunar_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ClashSha) GetClashZodiac() string {
@@ -970,7 +1002,7 @@ type LunarFestival struct {
 
 func (x *LunarFestival) Reset() {
 	*x = LunarFestival{}
-	mi := &file_lunar_proto_msgTypes[12]
+	mi := &file_proto_lunar_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -982,7 +1014,7 @@ func (x *LunarFestival) String() string {
 func (*LunarFestival) ProtoMessage() {}
 
 func (x *LunarFestival) ProtoReflect() protoreflect.Message {
-	mi := &file_lunar_proto_msgTypes[12]
+	mi := &file_proto_lunar_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -995,7 +1027,7 @@ func (x *LunarFestival) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LunarFestival.ProtoReflect.Descriptor instead.
 func (*LunarFestival) Descriptor() ([]byte, []int) {
-	return file_lunar_proto_rawDescGZIP(), []int{12}
+	return file_proto_lunar_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *LunarFestival) GetName() string {
@@ -1043,7 +1075,7 @@ type WesternAstroInfo struct {
 
 func (x *WesternAstroInfo) Reset() {
 	*x = WesternAstroInfo{}
-	mi := &file_lunar_proto_msgTypes[13]
+	mi := &file_proto_lunar_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1055,7 +1087,7 @@ func (x *WesternAstroInfo) String() string {
 func (*WesternAstroInfo) ProtoMessage() {}
 
 func (x *WesternAstroInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_lunar_proto_msgTypes[13]
+	mi := &file_proto_lunar_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1068,7 +1100,7 @@ func (x *WesternAstroInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WesternAstroInfo.ProtoReflect.Descriptor instead.
 func (*WesternAstroInfo) Descriptor() ([]byte, []int) {
-	return file_lunar_proto_rawDescGZIP(), []int{13}
+	return file_proto_lunar_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *WesternAstroInfo) GetPlanet() int32 {
@@ -1146,7 +1178,7 @@ type PlanetaryAspect struct {
 
 func (x *PlanetaryAspect) Reset() {
 	*x = PlanetaryAspect{}
-	mi := &file_lunar_proto_msgTypes[14]
+	mi := &file_proto_lunar_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1158,7 +1190,7 @@ func (x *PlanetaryAspect) String() string {
 func (*PlanetaryAspect) ProtoMessage() {}
 
 func (x *PlanetaryAspect) ProtoReflect() protoreflect.Message {
-	mi := &file_lunar_proto_msgTypes[14]
+	mi := &file_proto_lunar_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1171,7 +1203,7 @@ func (x *PlanetaryAspect) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlanetaryAspect.ProtoReflect.Descriptor instead.
 func (*PlanetaryAspect) Descriptor() ([]byte, []int) {
-	return file_lunar_proto_rawDescGZIP(), []int{14}
+	return file_proto_lunar_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *PlanetaryAspect) GetPlanet1() int32 {
@@ -1244,11 +1276,11 @@ func (x *PlanetaryAspect) GetExactDate() string {
 	return ""
 }
 
-var File_lunar_proto protoreflect.FileDescriptor
+var File_proto_lunar_proto protoreflect.FileDescriptor
 
-const file_lunar_proto_rawDesc = "" +
+const file_proto_lunar_proto_rawDesc = "" +
 	"\n" +
-	"\vlunar.proto\x12\x06api.v1\"(\n" +
+	"\x11proto/lunar.proto\x12\x06api.v1\"(\n" +
 	"\x12GetCalendarRequest\x12\x12\n" +
 	"\x04date\x18\x01 \x01(\tR\x04date\"\xc9\b\n" +
 	"\x13GetCalendarResponse\x12%\n" +
@@ -1294,11 +1326,16 @@ const file_lunar_proto_rawDesc = "" +
 	"\x04year\x18\x01 \x01(\tR\x04year\x12\x14\n" +
 	"\x05month\x18\x02 \x01(\tR\x05month\x12\x10\n" +
 	"\x03day\x18\x03 \x01(\tR\x03day\x12\x12\n" +
-	"\x04hour\x18\x04 \x01(\tR\x04hour\"S\n" +
+	"\x04hour\x18\x04 \x01(\tR\x04hour\"\xea\x01\n" +
 	"\tSolarTerm\x12\x14\n" +
 	"\x05index\x18\x01 \x01(\x05R\x05index\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1c\n" +
-	"\tlongitude\x18\x03 \x01(\x01R\tlongitude\"?\n" +
+	"\tlongitude\x18\x03 \x01(\x01R\tlongitude\x12\x1d\n" +
+	"\n" +
+	"start_time\x18\x04 \x01(\tR\tstartTime\x12$\n" +
+	"\x0enext_term_name\x18\x05 \x01(\tR\fnextTermName\x12$\n" +
+	"\x0enext_term_time\x18\x06 \x01(\tR\fnextTermTime\x12*\n" +
+	"\x11is_transition_day\x18\a \x01(\bR\x0fisTransitionDay\"?\n" +
 	"\aShenSha\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\"@\n" +
@@ -1364,22 +1401,22 @@ const file_lunar_proto_rawDesc = "" +
 	" \x01(\tH\x00R\texactDate\x88\x01\x01B\r\n" +
 	"\v_exact_date2V\n" +
 	"\fLunarService\x12F\n" +
-	"\vGetCalendar\x12\x1a.api.v1.GetCalendarRequest\x1a\x1b.api.v1.GetCalendarResponseB.Z,github.com/kaecer68/lunar-zenith/gen;lunarv1b\x06proto3"
+	"\vGetCalendar\x12\x1a.api.v1.GetCalendarRequest\x1a\x1b.api.v1.GetCalendarResponseB1Z/github.com/kaecer68/lunar-zenith/v4/gen;lunarv1b\x06proto3"
 
 var (
-	file_lunar_proto_rawDescOnce sync.Once
-	file_lunar_proto_rawDescData []byte
+	file_proto_lunar_proto_rawDescOnce sync.Once
+	file_proto_lunar_proto_rawDescData []byte
 )
 
-func file_lunar_proto_rawDescGZIP() []byte {
-	file_lunar_proto_rawDescOnce.Do(func() {
-		file_lunar_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_lunar_proto_rawDesc), len(file_lunar_proto_rawDesc)))
+func file_proto_lunar_proto_rawDescGZIP() []byte {
+	file_proto_lunar_proto_rawDescOnce.Do(func() {
+		file_proto_lunar_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_lunar_proto_rawDesc), len(file_proto_lunar_proto_rawDesc)))
 	})
-	return file_lunar_proto_rawDescData
+	return file_proto_lunar_proto_rawDescData
 }
 
-var file_lunar_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
-var file_lunar_proto_goTypes = []any{
+var file_proto_lunar_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_proto_lunar_proto_goTypes = []any{
 	(*GetCalendarRequest)(nil),  // 0: api.v1.GetCalendarRequest
 	(*GetCalendarResponse)(nil), // 1: api.v1.GetCalendarResponse
 	(*LunarInfo)(nil),           // 2: api.v1.LunarInfo
@@ -1396,7 +1433,7 @@ var file_lunar_proto_goTypes = []any{
 	(*WesternAstroInfo)(nil),    // 13: api.v1.WesternAstroInfo
 	(*PlanetaryAspect)(nil),     // 14: api.v1.PlanetaryAspect
 }
-var file_lunar_proto_depIdxs = []int32{
+var file_proto_lunar_proto_depIdxs = []int32{
 	2,  // 0: api.v1.GetCalendarResponse.lunar:type_name -> api.v1.LunarInfo
 	3,  // 1: api.v1.GetCalendarResponse.pillars:type_name -> api.v1.Pillars
 	4,  // 2: api.v1.GetCalendarResponse.solar_term:type_name -> api.v1.SolarTerm
@@ -1420,28 +1457,28 @@ var file_lunar_proto_depIdxs = []int32{
 	0,  // [0:14] is the sub-list for field type_name
 }
 
-func init() { file_lunar_proto_init() }
-func file_lunar_proto_init() {
-	if File_lunar_proto != nil {
+func init() { file_proto_lunar_proto_init() }
+func file_proto_lunar_proto_init() {
+	if File_proto_lunar_proto != nil {
 		return
 	}
-	file_lunar_proto_msgTypes[13].OneofWrappers = []any{}
-	file_lunar_proto_msgTypes[14].OneofWrappers = []any{}
+	file_proto_lunar_proto_msgTypes[13].OneofWrappers = []any{}
+	file_proto_lunar_proto_msgTypes[14].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_lunar_proto_rawDesc), len(file_lunar_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_lunar_proto_rawDesc), len(file_proto_lunar_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_lunar_proto_goTypes,
-		DependencyIndexes: file_lunar_proto_depIdxs,
-		MessageInfos:      file_lunar_proto_msgTypes,
+		GoTypes:           file_proto_lunar_proto_goTypes,
+		DependencyIndexes: file_proto_lunar_proto_depIdxs,
+		MessageInfos:      file_proto_lunar_proto_msgTypes,
 	}.Build()
-	File_lunar_proto = out.File
-	file_lunar_proto_goTypes = nil
-	file_lunar_proto_depIdxs = nil
+	File_proto_lunar_proto = out.File
+	file_proto_lunar_proto_goTypes = nil
+	file_proto_lunar_proto_depIdxs = nil
 }

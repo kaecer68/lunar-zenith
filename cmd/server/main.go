@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-const serviceVersion = "v4.0.0"
+const serviceVersion = "v4.1.0"
 
 func main() {
 	grpcPort, err := runtimecfg.GetRequiredPort("LUNAR_GRPC_PORT", "GRPC_PORT")

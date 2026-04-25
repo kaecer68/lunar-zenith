@@ -799,7 +799,7 @@ const SOLAR_TERMS_INFO = {
 };
 
 // 版本戳：用於快速確認是否載入最新嵌入頁面。
-const UI_REV = 'ui-rev-2026-04-11-2';
+const UI_REV = 'ui-rev-2026-04-25-solar-term-v4.1.0';
 
 // ── State ──────────────────────────────────
 let currentDate = new Date();
@@ -966,6 +966,10 @@ function renderData(d, data) {
     name: stSource.name || '',
     index: Number.isInteger(stSource.index) ? stSource.index : -1,
     longitude: (typeof stSource.longitude === 'number') ? stSource.longitude : 0,
+    startTime: stSource.start_time || '',
+    nextTermName: stSource.next_term_name || '',
+    nextTermTime: stSource.next_term_time || '',
+    isTransitionDay: stSource.is_transition_day || false,
   };
   const dirs = data.directions || {};
   const shensha = data.shen_sha || [];
@@ -1133,6 +1137,18 @@ ${(hol.name || chinaHol.name) ? `
     <span class="solar-term-idx">當前節氣</span>
   </div>
   ${stDesc ? `<div style="font-size:.78rem;color:var(--text-dim);margin-bottom:10px;padding:0 2px">${stDesc}</div>` : ''}
+  ${st.startTime ? `<div class="info-row">
+    <span class="info-label">節氣開始</span>
+    <span class="info-value accent">${st.startTime}</span>
+  </div>` : ''}
+  ${st.isTransitionDay ? `<div class="info-row">
+    <span class="info-label">節氣交換</span>
+    <span class="info-value" style="color:var(--red);font-weight:700">今日 ${(d => d ? `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}` : '─')(st.startTime ? new Date(st.startTime) : null)} 起進入${st.name}</span>
+  </div>` : ''}
+  ${st.nextTermName ? `<div class="info-row">
+    <span class="info-label">下一節氣</span>
+    <span class="info-value">${st.nextTermName} · ${st.nextTermTime}</span>
+  </div>` : ''}
   <div class="info-row">
     <span class="info-label">儒略日 (JD)</span>
     <span class="info-value mono">${data.julian_day ? data.julian_day.toFixed(5) : '─'}</span>

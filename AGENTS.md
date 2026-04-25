@@ -1,7 +1,11 @@
 # Lunar-Zenith — Agent Guidelines
 
+**Generated:** 2025-04-24
+**Commit:** 7b3c644
+**Branch:** codex-v4-contract-cleanup
+
 **Language**: Traditional Chinese for domain labels and user-facing content; Go 1.25+ for code.  
-**Scope**: Root defaults apply across the repo. Area-specific overrides live in `pkg/celestial/AGENTS.md`, `pkg/zodiac/AGENTS.md`, `internal/service/AGENTS.md`, `contracts/AGENTS.md`, `contracts/openapi/AGENTS.md`, and `contracts/.github/copilot-instructions.md`.
+**Scope**: Root defaults apply across the repo. Area-specific overrides live in `pkg/celestial/AGENTS.md`, `pkg/zodiac/AGENTS.md`, `pkg/western_astro/AGENTS.md`, `internal/service/AGENTS.md`, `contracts/AGENTS.md`, `contracts/openapi/AGENTS.md`, and `contracts/.github/copilot-instructions.md`.
 
 ## Build / Lint / Test Commands
 
@@ -92,5 +96,16 @@ make vet              # go vet ./...
 | Sexagenary (Ganzhi) | `pkg/zodiac/sexagenary.go` |
 | Lunar date / leap month engine | `pkg/zodiac/lunar_engine.go` |
 | Shensha system | `pkg/zodiac/shensha.go` |
+| Western astrology | `pkg/western_astro/planet.go` |
+| Web UI static files | `internal/webui/static/index.html` |
 | Contract sync script | `scripts/sync-contracts.sh` |
 | Docs consistency script | `scripts/check-docs-consistency.sh` |
+
+## graphify
+
+This project has a graphify knowledge graph at graphify-out/.
+
+Rules:
+- Before answering architecture or codebase questions, read graphify-out/GRAPH_REPORT.md for god nodes and community structure
+- If graphify-out/wiki/index.md exists, navigate it instead of reading raw files
+- After modifying code files in this session, run `graphify update .` to keep the graph current (AST-only, no API cost)

@@ -11,12 +11,12 @@ Converts astronomical data (JD, solar terms) into cultural calendar representati
 ```
 pkg/zodiac/
 ├── sexagenary.go      # 干支計算：年/月/日/時四柱，五虎遁，五鼠遁
-├── lunar_engine.go    # 農曆核心：朔望月，閏月判定 (TODO)
+├── lunar_engine.go    # 農曆核心：朔望月，閏月判定
 ├── lunar_date.go      # 農曆日期轉換
 ├── alignment.go       # 曆法對齊：節氣，星座
 ├── shensha.go         # 神煞系統：建除十二神，年驛馬，年桃花
 ├── religious.go       # 宗教曆：佛曆，道曆
-└── calendar/          # (reserved for calendar-specific logic)
+└── calendar/          # (保留目錄，目前為空)
 ```
 
 ## WHERE TO LOOK
@@ -27,7 +27,7 @@ pkg/zodiac/
 | 日干支計算 | `sexagenary.go:GetDaySexagenary()` | JD 基準，2000-01-01 戊午日 |
 | 月干支 (五虎遁) | `sexagenary.go:GetMonthSexagenary()` | 寅月起算 |
 | 時干支 (五鼠遁) | `sexagenary.go:GetHourSexagenary()` | 子時 23:00-01:00 |
-| 農曆轉換 | `lunar_engine.go` | 已實作無中氣月定閏，先看邊界測試與 `IsLeap` 輸出 |
+| 農曆轉換 | `lunar_engine.go` | 無中氣月定閏已實作，先看邊界測試與 `IsLeap` 輸出 |
 | 閏月輸出 | `lunar_date.go` | `LunarDate.IsLeap` 可用；邊界年份請搭配測試驗證 |
 | 二十八星宿 | `shensha.go:GetTwentyEightMansion()` | 公曆實際天數口徑；公式：mansionIndex = (A + 24) % 28 |
 | 胎神 (60甲子) | `shensha.go:GetFetalGodByDayPillar()` | 60甲子日柱定表；精確映射，推薦新介面 |

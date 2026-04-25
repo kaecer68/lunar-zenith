@@ -53,9 +53,13 @@ type zodiacLunarResponse struct {
 }
 
 type solarTermResponse struct {
-	Index     int     `json:"index"`
-	Name      string  `json:"name"`
-	Longitude float64 `json:"longitude"`
+	Index           int     `json:"index"`
+	Name            string  `json:"name"`
+	Longitude       float64 `json:"longitude"`
+	StartTime       string  `json:"start_time"`
+	NextTermName    string  `json:"next_term_name"`
+	NextTermTime    string  `json:"next_term_time"`
+	IsTransitionDay bool    `json:"is_transition_day"`
 }
 
 type holidayInfoResponse struct {
@@ -97,11 +101,6 @@ type clashShaResponse struct {
 }
 
 func toCalendarRESTResponse(res CalendarResponse) calendarRESTResponse {
-	solarTerm := solarTermResponse{
-		Index:     res.SolarTerm.Index,
-		Name:      res.SolarTerm.Name,
-		Longitude: res.SolarTerm.Longitude,
-	}
 	shenSha := make([]shenShaResponse, 0, len(res.ShenSha))
 	for _, item := range res.ShenSha {
 		shenSha = append(shenSha, shenShaResponse{
@@ -130,7 +129,15 @@ func toCalendarRESTResponse(res CalendarResponse) calendarRESTResponse {
 			Day:   res.Pillars.Day.String(),
 			Hour:  res.Pillars.Hour.String(),
 		},
-		SolarTerm:     solarTerm,
+		SolarTerm: solarTermResponse{
+			Index:           res.SolarTerm.Index,
+			Name:            res.SolarTerm.Name,
+			Longitude:       res.SolarTerm.Longitude,
+			StartTime:       res.SolarTerm.StartTime,
+			NextTermName:    res.SolarTerm.NextTermName,
+			NextTermTime:    res.SolarTerm.NextTermTime,
+			IsTransitionDay: res.SolarTerm.IsTransitionDay,
+		},
 		TwelveOfficer: res.TwelveOfficer,
 		ShenSha:       shenSha,
 		Suitable:      res.Suitable,
@@ -301,9 +308,13 @@ func toProtoPillars(p fourPillarsResponse) *lunarv1.Pillars {
 
 func toProtoSolarTerm(s solarTermResponse) *lunarv1.SolarTerm {
 	return &lunarv1.SolarTerm{
-		Index:     int32(s.Index),
-		Name:      s.Name,
-		Longitude: s.Longitude,
+		Index:           int32(s.Index),
+		Name:            s.Name,
+		Longitude:       s.Longitude,
+		StartTime:       s.StartTime,
+		NextTermName:    s.NextTermName,
+		NextTermTime:    s.NextTermTime,
+		IsTransitionDay: s.IsTransitionDay,
 	}
 }
 

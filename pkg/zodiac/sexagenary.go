@@ -1,5 +1,7 @@
 package zodiac
 
+import "math"
+
 // 天干 (Heavenly Stems)
 var HeavenlyStems = []string{"甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"}
 
@@ -56,10 +58,12 @@ func GetHourBranch(hour int) int {
 // 修正基準：2000/01/01 是 戊午日 (Stem:4, Branch:6)
 // JD 2451545.0 偏移量計算
 func GetDaySexagenary(jd float64) Sexagenary {
-	// 修正偏移：JD 0 是 癸丑 (實際上干支計日是連續的，不受格里曆變革影響)
-	// 已知 2000年1月1日 (JD 2451545) 是 戊午日 (4, 6)
-	// 算法：(JD + 0.5 + 基準偏移) % 60
-	offset := int(jd+0.5+49) % 60
+	// 修正偏移：已知 2000年1月1日 (JD 2451545.0) 是 戊午日 (天干索引 4, 地支索引 6)。
+	// 戊午在 60 甲子中為序號 54。
+	// dayNumber = floor(jd + 0.5) + 1；對 JD 2451545.0 而言 dayNumber = 2451546。
+	// 故偏移量 = 54 - (2451546 mod 60) = 54 - 6 = 48。
+	dayNumber := int(math.Floor(jd+0.5)) + 1
+	offset := (dayNumber + 48) % 60
 	if offset < 0 {
 		offset += 60
 	}

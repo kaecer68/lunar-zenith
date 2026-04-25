@@ -70,6 +70,10 @@ message SolarTerm {
   int32 index = 1;
   string name = 2;
   double longitude = 3;
+  string start_time = 4;        // 當前節氣開始時間 (RFC3339, Asia/Taipei)
+  string next_term_name = 5;    // 下一個節氣名稱
+  string next_term_time = 6;    // 下一個節氣時間 (RFC3339, Asia/Taipei)
+  bool is_transition_day = 7;   // 當天是否為節氣交換日
 }
 
 message ShenSha {
